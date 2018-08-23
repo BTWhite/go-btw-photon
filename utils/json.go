@@ -26,7 +26,6 @@ func ToJson(o interface{}) []byte {
 func FromJson(data []byte, o interface{}) error {
 	err := json.Unmarshal(data, o)
 	if err != nil {
-		o = nil
 		return err
 	}
 	return nil
