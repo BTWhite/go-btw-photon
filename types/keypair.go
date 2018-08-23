@@ -35,7 +35,7 @@ func (k *KeyPair) Public() *PublicKey {
 	return &k.public
 }
 
-// New creates and returns a pointer to a key pair (public, private).
+// NewKeyPair creates and returns a pointer to a key pair (public, private).
 func NewKeyPair(seed []byte) *KeyPair {
 	hash := sha256.Sha256(seed)
 	key := ed25519.NewKeyFromSeed(hash)
@@ -73,7 +73,7 @@ func (k *PublicKey) Address() string {
 	return buffer.String()
 }
 
-// PublicKeyByHex creates a public key for the string representation.
+// NewPublicKeyByHex creates a public key for the string representation.
 func NewPublicKeyByHex(s string) PublicKey {
 	b, _ := hex.DecodeString(s)
 	return PublicKey(b)
