@@ -8,11 +8,6 @@
 
 package utils
 
-// CopyOfRange takes an array of bytes and a line to be returned.
-func CopyOfRange(src []byte, from, to int) []byte {
-	return append([]byte(nil), src[from:to]...)
-}
-
 // FlipBytes flips an array with bytes
 func FlipBytes(arr []byte) []byte {
 	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {

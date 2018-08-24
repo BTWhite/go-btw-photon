@@ -8,8 +8,6 @@
 
 package base58
 
-import "github.com/BTWhite/go-btw-photon/utils"
-
 const ALPHABET string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 var INDEXES []int = make([]int, 128)
@@ -69,7 +67,7 @@ func Encode(input []byte) []byte {
 		}
 	}
 
-	var output []byte = utils.CopyOfRange(temp, j, len(temp))
+	var output []byte = temp[j:len(temp)]
 	return output
 }
 
@@ -116,7 +114,7 @@ func Decode(input []byte) []byte {
 		j++
 	}
 
-	return utils.CopyOfRange(temp, j-zeroCount, len(temp))
+	return temp[j-zeroCount : len(temp)]
 }
 
 func divmod58(number []byte, startAt int) byte {
