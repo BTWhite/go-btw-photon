@@ -1,10 +1,9 @@
-package tests
+package sign
 
 import (
 	"testing"
 
 	"github.com/BTWhite/go-btw-photon/types"
-	"github.com/BTWhite/go-btw-photon/utils"
 )
 
 func TestSign(t *testing.T) {
@@ -16,7 +15,7 @@ func TestSign(t *testing.T) {
 
 func TestVerify(t *testing.T) {
 	tx := getSignedTx()
-	if !utils.Verify(tx, tx.SenderPublicKey, tx.Signature, 0) {
+	if !Verify(tx, tx.SenderPublicKey, tx.Signature, 0) {
 		t.Error("Incorrect sign/verify")
 	}
 }
@@ -30,7 +29,7 @@ func getSignedTx() *types.Tx {
 	tx.GetBytes()
 
 	kp := types.NewKeyPair([]byte("Hello World"))
-	utils.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
+	Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
 
 	return tx
 }

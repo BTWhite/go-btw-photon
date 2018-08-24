@@ -6,7 +6,7 @@
 // Please note that you can use the source code for your own purposes,
 // but we do not give any warranty. For more information, refer to the GPLv3
 
-package utils
+package sign
 
 import (
 	"encoding/hex"
