@@ -4,7 +4,7 @@
 // which can be found in the LICENSE file.
 //
 // Please note that you can use the source code for your own purposes,
-// but we do not give any warranty. For more information, refer to the GPLv3
+// but we do not give any warranty. For more information, refer to the GPLv3.
 
 package sign
 
