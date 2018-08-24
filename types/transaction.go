@@ -13,7 +13,7 @@ import (
 	"encoding/binary"
 )
 
-// Tx determines the structure of the transaction
+// Tx determines the structure of the transaction.
 type Tx struct {
 	Id              Hash   `json:"id"`
 	SenderPublicKey Hash   `json:"senderId"`
@@ -24,10 +24,12 @@ type Tx struct {
 	Timestamp       uint32 `json:"timestamp"`
 }
 
+// NewTx creates new empty transaction.
 func NewTx() *Tx {
 	return &Tx{}
 }
 
+// GetBytes gets byte array by tx object.
 func (t *Tx) GetBytes() []byte {
 	buff := new(bytes.Buffer)
 
