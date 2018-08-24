@@ -50,6 +50,11 @@ func (t *Tx) GetBytes() []byte {
 	return buff.Bytes()
 }
 
+// Mine generates a nonce field and automatically fills in the nonce and id fields.
+// To make a transaction, you will need to spend a little bit of processing power,
+// But it will be so fast that it will be almost unnoticeable,
+// because quite low complexity is used.
+// Look constant `complexity`.
 func (tx *Tx) Mine(c *chan *Tx) {
 	data := tx.GetBytes()
 	cm := mine.StartMine(data, complexity, 1)

@@ -15,6 +15,10 @@ import (
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 )
 
+// StartMine is the basic mining function for selecting the nonce field.
+// Pass here an array of bytes, the complexity and number of gorutines.
+// In response you will receive a chan that will return a nonce
+// suitable in the future.
 func StartMine(message []byte, complexity int, threads int) *chan uint32 {
 	var nonce uint32
 	var proc = true
@@ -41,6 +45,8 @@ func StartMine(message []byte, complexity int, threads int) *chan uint32 {
 	return &c
 }
 
+// GetHashNonce takes a set of bytes and nonce, combines them and issues
+// a joint hash.
 func GetHashNonce(data []byte, nonce uint32) []byte {
 	nonceBuff := make([]byte, 4)
 	binary.LittleEndian.PutUint32(nonceBuff, nonce)
