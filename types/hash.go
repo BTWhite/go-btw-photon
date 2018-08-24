@@ -8,7 +8,10 @@
 
 package types
 
-import "encoding/hex"
+import (
+	"bytes"
+	"encoding/hex"
+)
 
 // Hash a type for storing hashes.
 type Hash []byte
@@ -63,4 +66,26 @@ func (h Hash) ToHex() string {
 // ToBytes it simply helps to convert the Hash to bytes when needed.
 func (h Hash) ToBytes() []byte {
 	return h
+}
+
+// WriteToBuff writes the hash to the buffer.
+// If the hash len equals 0 then defaultSize zeros will be written to the buffer.
+// To avoid defaultSize, specify 0.
+func (h Hash) WriteToBuff(buff *bytes.Buffer, defaultSize int) error {
+	if len(h) == 0 {
+
+		buff.Write(make([]byte, defaultSize))
+	} else {
+		tmp := make([]byte, defaultSize*2)
+		_, err := hex.Decode(tmp, h)
+		if err != nil {
+			return err
+		}
+		sz := defaultSize
+		if sz == 0 {
+			sz = len(tmp)
+		}
+		buff.Write(tmp[:sz])
+	}
+	return nil
 }
