@@ -26,7 +26,7 @@ func Sha256Hex(input []byte) string {
 	return hex.EncodeToString(Sha256(input))
 }
 
-// EncodeX2 hash the value twice -> sha256(sha256(x)).
+// Sha256X2 hash the value twice -> sha256(sha256(x)).
 func Sha256X2(input []byte) []byte {
 	return Sha256(Sha256(input))
 }
