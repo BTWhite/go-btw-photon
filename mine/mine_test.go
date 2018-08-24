@@ -6,7 +6,7 @@ func TestMine(t *testing.T) {
 	zeros := 2
 	message := []byte("Hello World!")
 	c := StartMine(message, zeros, 10)
-	nonce := <-*c
+	nonce := <-c
 
 	h := GetHashNonce(message, nonce)
 

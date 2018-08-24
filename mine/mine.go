@@ -19,7 +19,7 @@ import (
 // Pass here an array of bytes, the complexity and number of gorutines.
 // In response you will receive a chan that will return a nonce
 // suitable in the future.
-func StartMine(message []byte, complexity int, threads int) *chan uint32 {
+func StartMine(message []byte, complexity int, threads int) chan uint32 {
 	var nonce uint32
 	var proc = true
 	var c = make(chan uint32)
@@ -42,7 +42,7 @@ func StartMine(message []byte, complexity int, threads int) *chan uint32 {
 		}()
 	}
 
-	return &c
+	return c
 }
 
 // GetHashNonce takes a set of bytes and nonce, combines them and issues

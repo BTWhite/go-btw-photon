@@ -58,7 +58,7 @@ func (t *Tx) GetBytes() []byte {
 func (tx *Tx) Mine(c *chan *Tx) {
 	data := tx.GetBytes()
 	cm := mine.StartMine(data, complexity, 1)
-	nonce := <-*cm
+	nonce := <-cm
 
 	hash := mine.GetHashNonce(tx.GetBytes(), nonce)
 	tx.Id = hash
