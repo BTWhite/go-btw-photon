@@ -8,22 +8,22 @@
 
 package base58
 
-const ALPHABET string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const alphabet string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-var INDEXES []int = make([]int, 128)
+var indexes []int = make([]int, 128)
 
 // Init is necessary for correct operation of decoding.
 // You must call this function once before using the package.
 func Init() {
-	var i int = 0
-	for i < len(INDEXES) {
-		INDEXES[i] = -1
+	var i int
+	for i < len(indexes) {
+		indexes[i] = -1
 		i++
 	}
 
 	i = 0
-	for i < len(ALPHABET) {
-		INDEXES[int(ALPHABET[i])] = i
+	for i < len(alphabet) {
+		indexes[int(alphabet[i])] = i
 		i++
 	}
 }
@@ -34,7 +34,7 @@ func Encode(input []byte) []byte {
 		return []byte{}
 	}
 
-	var zeroCount int = 0
+	var zeroCount int
 	for zeroCount < len(input) && input[zeroCount] == 0 {
 		zeroCount++
 	}
@@ -50,10 +50,10 @@ func Encode(input []byte) []byte {
 			startAt++
 		}
 		j--
-		temp[j] = byte(ALPHABET[mod])
+		temp[j] = byte(alphabet[mod])
 	}
 
-	for j < len(temp) && temp[j] == ALPHABET[0] {
+	for j < len(temp) && temp[j] == alphabet[0] {
 		j++
 	}
 
@@ -63,7 +63,7 @@ func Encode(input []byte) []byte {
 			break
 		} else {
 			j--
-			temp[j] = byte(ALPHABET[0])
+			temp[j] = byte(alphabet[0])
 		}
 	}
 
@@ -77,12 +77,12 @@ func Decode(input []byte) []byte {
 		return []byte{}
 	}
 
-	var i int = 0
+	var i int
 	for i < len(input) {
 		var c uint8 = input[i]
 		var digit58 int = -1
 		if int(c) >= 0 && int(c) < 128 {
-			digit58 = INDEXES[c]
+			digit58 = indexes[c]
 		}
 		if digit58 < 0 {
 			return []byte{}
@@ -92,7 +92,7 @@ func Decode(input []byte) []byte {
 		i++
 	}
 
-	var zeroCount int = 0
+	var zeroCount int
 	for zeroCount < len(input) && input[zeroCount] == 0 {
 		zeroCount++
 	}
@@ -118,7 +118,7 @@ func Decode(input []byte) []byte {
 }
 
 func divmod58(number []byte, startAt int) byte {
-	var remainder int = 0
+	var remainder int
 	var i int = startAt
 	for i < len(number) {
 		var digit256 int = int(number[i] & 0xFF)
@@ -132,7 +132,7 @@ func divmod58(number []byte, startAt int) byte {
 }
 
 func divmod256(number58 []byte, startAt int) byte {
-	var remainder int = 0
+	var remainder int
 	var i = startAt
 	for i < len(number58) {
 		var digit58 int = int(number58[i] & 0xFF)
