@@ -24,11 +24,15 @@ import (
 func Sign(object interfaces.Byter, pair *types.KeyPair, generator *types.Hash,
 	signature *types.Hash, dataOffset int) {
 
+	// First of all, we need to change the generator field since
+	// this can affect the data in the array.
 	generatorHex := make([]byte, 64)
 	pub := *pair.Public()
 	hex.Encode(generatorHex, pub)
 	*generator = generatorHex
 
+	// Having received a set of bytes, we do not send the entire array for the
+	// signature, only the hash.
 	bytes := object.GetBytes()
 	data := bytes[:len(bytes)-dataOffset]
 	hashBytes := sha256.Sha256(data)
