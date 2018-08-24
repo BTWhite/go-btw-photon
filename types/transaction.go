@@ -11,17 +11,25 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+
+	"github.com/BTWhite/go-btw-photon/mine"
+)
+
+const (
+	complexity = 4
 )
 
 // Tx determines the structure of the transaction.
 type Tx struct {
 	Id              Hash   `json:"id"`
-	SenderPublicKey Hash   `json:"senderId"`
+	SenderPublicKey Hash   `json:"senderPublicKey"`
+	SenderId        Hash   `json:"senderId"`
 	RecipientId     Hash   `json:"recipientId"`
 	Amount          uint64 `json:"amount"`
 	Fee             uint64 `json:"fee"`
 	Signature       Hash   `json:"signature"`
-	Timestamp       uint32 `json:"timestamp"`
+	Timestamp       int64  `json:"timestamp"`
+	Nonce           uint32 `json:"nonce"`
 }
 
 // NewTx creates new empty transaction.
@@ -40,4 +48,18 @@ func (t *Tx) GetBytes() []byte {
 	t.SenderPublicKey.WriteToBuff(buff, 32)
 	t.RecipientId.WriteToBuff(buff, 32)
 	return buff.Bytes()
+}
+
+func (tx *Tx) Mine(c *chan *Tx) {
+	data := tx.GetBytes()
+	cm := mine.StartMine(data, complexity, 1)
+	nonce := <-*cm
+
+	hash := mine.GetHashNonce(tx.GetBytes(), nonce)
+	tx.Id = hash
+	tx.Nonce = nonce
+
+	if c != nil {
+		*c <- tx
+	}
 }
