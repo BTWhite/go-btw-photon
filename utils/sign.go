@@ -21,7 +21,9 @@ import (
 // Requires that you also specify generator and signature, where the public key
 // of the signer and his signature will be placed.
 // dataOffset will also help you delete the last n bytes of the byte array.
-func Sign(object interfaces.Byter, pair *types.KeyPair, generator *types.Hash, signature *types.Hash, dataOffset int) {
+func Sign(object interfaces.Byter, pair *types.KeyPair, generator *types.Hash,
+	signature *types.Hash, dataOffset int) {
+
 	generatorHex := make([]byte, 64)
 	pub := *pair.Public()
 	hex.Encode(generatorHex, pub)
@@ -29,8 +31,8 @@ func Sign(object interfaces.Byter, pair *types.KeyPair, generator *types.Hash, s
 
 	bytes := object.GetBytes()
 	data := bytes[:len(bytes)-dataOffset]
-
 	hashBytes := sha256.Sha256(data)
+
 	secret := *pair.Secret()
 	privateBytes := types.NewHash(secret).ToBytes()
 	sign := ed25519.Sign(privateBytes, hashBytes)
@@ -44,7 +46,9 @@ func Sign(object interfaces.Byter, pair *types.KeyPair, generator *types.Hash, s
 // Unlike Sign does not require pointers.
 // For the validity of events, do not forget to specify the same dataOffset
 // when signing and verifying.
-func Verify(object interfaces.Byter, generator types.Hash, signature types.Hash, dataOffset int) bool {
+func Verify(object interfaces.Byter, generator types.Hash,
+	signature types.Hash, dataOffset int) bool {
+
 	bytes := object.GetBytes()
 	data := bytes[:len(bytes)-dataOffset]
 	hashBytes := sha256.Sha256(data)
