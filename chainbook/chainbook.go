@@ -10,7 +10,6 @@ package chainbook
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
@@ -19,9 +18,12 @@ import (
 )
 
 var (
+	// ErrChainNotFound is returned is chain not found when writing a new transaction.
 	ErrChainNotFound = errors.New("Chain not found")
 )
 
+// ChainBook is a `chain manager` that controls the invocation of the necessary
+// transaction methods and chains.
 type ChainBook struct {
 	Chains    map[string]*chain.Chain
 	processor interfaces.TxProcessor
@@ -29,7 +31,12 @@ type ChainBook struct {
 	chTbl     *leveldb.Tbl
 }
 
-func NewChainBook(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl, processor interfaces.TxProcessor) *ChainBook {
+// NewChainBook opens the chainbook.
+// Waits for a table for transactions, a table for chains, and an implementing
+// interfaces.TxProcessor object.
+func NewChainBook(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl,
+	processor interfaces.TxProcessor) *ChainBook {
+
 	cb := &ChainBook{
 		chTbl:     chTbl,
 		txTbl:     txTbl,
@@ -39,17 +46,21 @@ func NewChainBook(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl, processor interfaces.T
 	return cb
 }
 
+// AddChain add chain to the chainbook list.
 func (cb *ChainBook) AddChain(c *chain.Chain) {
 	cb.Chains[c.Id.String()] = c
 }
 
+// AddTx is entry point for tx, the transaction will be transferred to the chain
+// if it exists after the transaction is obtained (call `tx.Mine`).
+// Before processing, transactions will also be changed `PreviousTx`.
+// The processor's methods will also be called: `Validate` and `Process`.
 func (cb *ChainBook) AddTx(tx *types.Tx) error {
 	var c *chain.Chain = cb.Chains[tx.Chain.String()]
 	if c == nil {
 		ch := chain.NewChain(cb.txTbl, cb.chTbl)
 		err := cb.chTbl.GetObject(tx.Chain, ch)
 		if err != nil {
-			fmt.Println(tx.Id, err.Error())
 			return err
 		}
 		cb.Chains[ch.Id.String()] = ch
