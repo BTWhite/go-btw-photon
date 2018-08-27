@@ -10,10 +10,10 @@ package chain
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
-
-	"container/list"
+	"sort"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
@@ -22,83 +22,83 @@ import (
 )
 
 var (
-	tbl = leveldb.CreateTable([]byte("tx"))
+	tbl = leveldb.CreateTable([]byte("chain"))
 
-	// ErrTxAlreadyExist is returned if tx already exist in tx list.
-	ErrTxAlreadyExist = errors.New("Tx already exist")
-
-	// ErrTxNotFound is returned if tx not found.
-	ErrTxNotFound = errors.New("Tx not found")
+	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
 )
 
 // Chain is a branch in a network.
 type Chain struct {
-	Id      types.Hash `json:"id"`
-	Asset   types.Hash `json:"asset"`
-	Root    types.Hash `json:"root"`
-	Payload types.Hash `json:"payload"`
-	Txs     *list.List `json:"txs"`
+	Id      types.Hash   `json:"id"`
+	Height  uint32       `json:"height"`
+	RootCh  types.Hash   `json:"root_ch"`
+	RootTx  types.Hash   `json:"root_tx"`
+	Payload types.Hash   `json:"payload"`
+	Txs     []types.Hash `json:"txs"`
 }
 
 // NewChain creates a new chain with hash name.
 func NewChain(id types.Hash) *Chain {
 	sqlite3.Init(fmt.Sprint("data/", id, ".chain"))
 	chain := &Chain{}
-	chain.Txs = list.New()
 	return chain
-}
-
-// GetBytes returns chain bytes array.
-func (c *Chain) GetBytes() []byte {
-	buff := new(bytes.Buffer)
-
-	c.Id.WriteToBuff(buff, 0)
-	c.Asset.WriteToBuff(buff, 0)
-	c.Root.WriteToBuff(buff, 0)
-
-	return buff.Bytes()
 }
 
 // CalcId calculates a hash of a chain by byte representation.
 func (c *Chain) CalcId() types.Hash {
-	h := []byte(sha256.Sha256Hex(c.GetBytes()))
+	buff := new(bytes.Buffer)
+
+	c.RootCh.WriteToBuff(buff, 0)
+	c.RootTx.WriteToBuff(buff, 0)
+
+	h := []byte(sha256.Sha256Hex(buff.Bytes()))
 	return types.NewHash(h)
 }
 
-// AddTx adds a new transaction to the chain.
-func (c *Chain) AddTx(tx *types.Tx) (error, types.Hash) {
-	exist, err := tbl.Has(tx.Id)
+// UpdatePayload updates payload field responsible for the security
+// of transactions inside.
+func (c *Chain) UpdatePayload() types.Hash {
+	c.sortTx()
+	buff := new(bytes.Buffer)
+	binary.Write(buff, binary.LittleEndian, c.Height)
 
+	for _, th := range c.Txs {
+
+		th.WriteToBuff(buff, 64)
+	}
+	data := buff.Bytes()
+	hash := sha256.Sha256Hex(data)
+
+	c.Payload = []byte(hash)
+
+	return c.Payload
+}
+
+// AddTx adds a new transaction to the chain.
+func (c *Chain) AddTx(tx *types.Tx) error {
+	_, hash := tx.Save()
+
+	c.Txs = append(c.Txs, hash)
+	c.Height++
+	return tbl.PutObject(c.Id, c)
+}
+
+// GetTx gets a transaction from the chain.
+func (c *Chain) GetTx(hash types.Hash) (error, *types.Tx) {
+	err, tx := types.GetTx(hash)
 	if err != nil {
 		return err, nil
 	}
 
-	if exist {
-		return ErrTxAlreadyExist, nil
+	if !tx.Chain.Equals(c.Id) {
+		return ErrTxNotFoundInChain, nil
 	}
 
-	tbl.PutObject(tx.Id, tx)
-	return nil, tx.Id
+	return nil, tx
 }
 
-// GetTx gets a transaction from the chain.
-func (c *Chain) GetTx(hash types.Hash) (error, bool, *types.Tx) {
-	exist, err := tbl.Has(hash)
-
-	if err != nil {
-		return err, false, nil
-	}
-
-	if !exist {
-		return ErrTxNotFound, false, nil
-	}
-
-	tx := types.NewTx()
-	err = tbl.GetObject(hash, tx)
-
-	if err != nil {
-		return err, false, nil
-	}
-
-	return nil, true, tx
+func (c *Chain) sortTx() {
+	sort.Slice(c.Txs, func(a, b int) bool {
+		return c.Txs[a][0] < c.Txs[b][0]
+	})
 }

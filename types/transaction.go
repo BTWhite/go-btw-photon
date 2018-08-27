@@ -11,8 +11,20 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 
+	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/mine"
+)
+
+var (
+	tbl = leveldb.CreateTable([]byte("tx"))
+
+	// ErrTxAlreadyExist is returned if tx already exist in tx list.
+	ErrTxAlreadyExist = errors.New("Tx already exist")
+
+	// ErrTxNotFound is returned if tx not found.
+	ErrTxNotFound = errors.New("Tx not found")
 )
 
 const (
@@ -30,6 +42,8 @@ type Tx struct {
 	Signature       Hash   `json:"signature"`
 	Timestamp       int64  `json:"timestamp"`
 	Nonce           uint32 `json:"nonce"`
+	Height          uint32 `json:"height"`
+	Chain           Hash   `json:"chain"`
 }
 
 // NewTx creates new empty transaction.
@@ -44,9 +58,11 @@ func (t *Tx) GetBytes() []byte {
 	binary.Write(buff, binary.LittleEndian, t.Timestamp)
 	binary.Write(buff, binary.LittleEndian, t.Amount)
 	binary.Write(buff, binary.LittleEndian, t.Fee)
+	binary.Write(buff, binary.LittleEndian, t.Height)
 
 	t.SenderPublicKey.WriteToBuff(buff, 32)
 	t.RecipientId.WriteToBuff(buff, 32)
+	t.Chain.WriteToBuff(buff, 32)
 	return buff.Bytes()
 }
 
@@ -63,4 +79,39 @@ func (t *Tx) Mine() {
 	hash := mine.GetHashNonce(t.GetBytes(), nonce)
 	t.Id = hash
 	t.Nonce = nonce
+}
+
+// Save writes a tx to the database.
+func (t *Tx) Save() (error, Hash) {
+	exist, err := tbl.Has(t.Id)
+
+	if err != nil {
+		return err, nil
+	}
+
+	if exist {
+		return ErrTxAlreadyExist, t.Id
+	}
+
+	tbl.PutObject(t.Id, t)
+	return nil, t.Id
+}
+
+// GetTx tries to find a transaction in the entire network by its hash.
+func GetTx(hash Hash) (error, *Tx) {
+	exist, err := tbl.Has(hash)
+	if err != nil {
+		return err, nil
+	}
+	if !exist {
+		return ErrTxNotFound, nil
+	}
+
+	tx := NewTx()
+	err = tbl.GetObject(hash, tx)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, tx
 }

@@ -28,22 +28,24 @@ func LoadGenesis(filename string) (*Chain, error) {
 	if err != nil {
 		return nil, err
 	}
-	g := &genesis{}
+	g := &genesis{
+		Chain: &Chain{},
+	}
 
-	json.FromJson(data, g)
+	json.FromJson(data, &g.Transactions)
 
 	for _, tx := range g.Transactions {
 		tx.Timestamp = time.Now().Unix()
 		tx.Mine()
 
-		err, hash := g.Chain.AddTx(tx)
+		err := g.Chain.AddTx(tx)
 		if err != nil {
 			fmt.Println(err.Error())
-		} else {
-			fmt.Println(hash)
 		}
-
 	}
 
-	return nil, nil
+	g.Chain.UpdatePayload()
+	g.Chain.Id = g.Chain.CalcId()
+	fmt.Println("chain:", string(json.ToJson(g.Chain)))
+	return g.Chain, nil
 }
