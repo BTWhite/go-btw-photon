@@ -47,6 +47,7 @@ func LoadGenesis(filename string, chTbl *leveldb.Tbl, txTbl *leveldb.Tbl) (*Chai
 
 	g.Chain.UpdatePayload()
 	g.Chain.Id = g.Chain.CalcId()
-	fmt.Println("chain:", string(json.ToJson(g.Chain)))
+
+	g.Chain.Save()
 	return g.Chain, nil
 }

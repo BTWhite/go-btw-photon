@@ -123,6 +123,6 @@ func (c *Chain) GetTx(hash types.Hash) (error, *types.Tx) {
 
 func (c *Chain) sortTx() {
 	sort.Slice(c.Txs, func(a, b int) bool {
-		return c.Txs[a][0] < c.Txs[b][0]
+		return c.Txs[a].String() < c.Txs[b].String()
 	})
 }
