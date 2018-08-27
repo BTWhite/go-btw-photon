@@ -55,7 +55,7 @@ func (t *Tx) GetBytes() []byte {
 // But it will be so fast that it will be almost unnoticeable,
 // because quite low complexity is used.
 // Look constant `complexity`.
-func (t *Tx) Mine(c *chan *Tx) {
+func (t *Tx) Mine() {
 	data := t.GetBytes()
 	cm := mine.StartMine(data, complexity, 1)
 	nonce := <-cm
@@ -63,8 +63,4 @@ func (t *Tx) Mine(c *chan *Tx) {
 	hash := mine.GetHashNonce(t.GetBytes(), nonce)
 	t.Id = hash
 	t.Nonce = nonce
-
-	if c != nil {
-		*c <- t
-	}
 }
