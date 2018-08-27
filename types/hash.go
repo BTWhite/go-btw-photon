@@ -25,13 +25,22 @@ func NewHash(b []byte) Hash {
 
 // UnmarshalJSON required for deserialization and correction of standard byte processing in GO.
 func (h *Hash) UnmarshalJSON(b []byte) error {
+	if len(b) == 4 && b[0] == 'n' && b[1] == 'u' && b[2] == 'l' && b[3] == 'l' {
+		*h = nil
+		return nil
+	}
+
 	*h = make(Hash, len(b)-2)
 	copy(*h, b[1:len(b)-1])
+
 	return nil
 }
 
 // MarshalJSON required for serialization and correction of standard byte processing in GO.
 func (h *Hash) MarshalJSON() ([]byte, error) {
+	if h == nil || len(*h) == 0 {
+		return []byte("null"), nil
+	}
 	b := make([]byte, len(*h)+2)
 	b[0] = 34
 	b[len(b)-1] = 34
@@ -55,6 +64,9 @@ func (h Hash) Equals(h2 Hash) bool {
 
 // String is the implementation of the Stringer interface.
 func (h Hash) String() string {
+	if len(h) == 0 {
+		return "<nil hash>"
+	}
 	return string(h)
 }
 
