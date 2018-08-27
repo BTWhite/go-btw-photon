@@ -25,8 +25,8 @@ type Tx struct {
 	SenderPublicKey Hash   `json:"senderPublicKey"`
 	SenderId        Hash   `json:"senderId"`
 	RecipientId     Hash   `json:"recipientId"`
-	Amount          uint64 `json:"amount"`
-	Fee             uint64 `json:"fee"`
+	Amount          Coin   `json:"amount"`
+	Fee             Coin   `json:"fee"`
 	Signature       Hash   `json:"signature"`
 	Timestamp       int64  `json:"timestamp"`
 	Nonce           uint32 `json:"nonce"`
