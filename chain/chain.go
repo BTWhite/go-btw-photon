@@ -20,7 +20,13 @@ import (
 )
 
 var (
+	// ErrTxNotFoundInChain is returned if the transaction is not found
+	// or is not in a particular chain.
 	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
+
+	// ErrTxInvalidPrevTx is returned if the transaction specified an invalid
+	// previous transaction hash.
+	ErrTxInvalidPrevTx = errors.New("Invalid previous tx")
 )
 
 // Chain is a branch in a network.
@@ -32,8 +38,9 @@ type Chain struct {
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
 
-	txTbl *leveldb.Tbl
-	chTbl *leveldb.Tbl
+	txTbl  *leveldb.Tbl
+	chTbl  *leveldb.Tbl
+	lastTx types.Hash
 }
 
 // NewChain creates a new chain with hash name.
@@ -44,6 +51,11 @@ func NewChain(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl) *Chain {
 		chTbl: chTbl,
 	}
 	return chain
+}
+
+// Save writes chain to the database.
+func (c *Chain) Save() error {
+	return c.chTbl.PutObject(c.Id, c)
 }
 
 // CalcId calculates a hash of a chain by byte representation.
@@ -78,10 +90,20 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
+	var lastTx types.Hash
+	if len(c.lastTx) != 0 {
+		lastTx = c.lastTx
+	}
+	lastTx = c.RootTx
+
+	if !tx.PreviousTx.Equals(lastTx) {
+		return ErrTxInvalidPrevTx
+	}
 	_, hash := tx.Save(c.txTbl)
 
 	c.Txs = append(c.Txs, hash)
 	c.Height++
+	c.lastTx = hash
 	return c.chTbl.PutObject(c.Id, c)
 }
 
