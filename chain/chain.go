@@ -24,10 +24,14 @@ import (
 var (
 	tbl = leveldb.CreateTable([]byte("tx"))
 
+	// ErrTxAlreadyExist is returned if tx already exist in tx list.
 	ErrTxAlreadyExist = errors.New("Tx already exist")
-	ErrTxNotFound     = errors.New("Tx not found")
+
+	// ErrTxNotFound is returned if tx not found.
+	ErrTxNotFound = errors.New("Tx not found")
 )
 
+// Chain is a branch in a network.
 type Chain struct {
 	Id      types.Hash `json:"id"`
 	Asset   types.Hash `json:"asset"`
@@ -36,6 +40,7 @@ type Chain struct {
 	Txs     *list.List `json:"txs"`
 }
 
+// NewChain creates a new chain with hash name.
 func NewChain(id types.Hash) *Chain {
 	sqlite3.Init(fmt.Sprint("data/", id, ".chain"))
 	chain := &Chain{}
@@ -43,6 +48,7 @@ func NewChain(id types.Hash) *Chain {
 	return chain
 }
 
+// GetBytes returns chain bytes array.
 func (c *Chain) GetBytes() []byte {
 	buff := new(bytes.Buffer)
 
@@ -53,11 +59,13 @@ func (c *Chain) GetBytes() []byte {
 	return buff.Bytes()
 }
 
+// CalcId calculates a hash of a chain by byte representation.
 func (c *Chain) CalcId() types.Hash {
 	h := []byte(sha256.Sha256Hex(c.GetBytes()))
 	return types.NewHash(h)
 }
 
+// AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) (error, types.Hash) {
 	exist, err := tbl.Has(tx.Id)
 
@@ -73,6 +81,7 @@ func (c *Chain) AddTx(tx *types.Tx) (error, types.Hash) {
 	return nil, tx.Id
 }
 
+// GetTx gets a transaction from the chain.
 func (c *Chain) GetTx(hash types.Hash) (error, bool, *types.Tx) {
 	exist, err := tbl.Has(hash)
 

@@ -22,6 +22,7 @@ type genesis struct {
 	Transactions []*types.Tx `json:"transactions"`
 }
 
+// LoadGenesis loads the genesis chain from the file.
 func LoadGenesis(filename string) (*Chain, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -43,8 +44,6 @@ func LoadGenesis(filename string) (*Chain, error) {
 		}
 
 	}
-	_, _, tx := g.Chain.GetTx([]byte("0000accc2cecd6a183ae426739267b06c0e0db509d8fe1a38b6628807eb57f4f"))
-	//	fmt.Println(err.Error())
-	fmt.Println(string(json.ToJson(tx)))
+
 	return nil, nil
 }
