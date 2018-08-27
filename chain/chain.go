@@ -23,10 +23,6 @@ var (
 	// ErrTxNotFoundInChain is returned if the transaction is not found
 	// or is not in a particular chain.
 	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
-
-	// ErrTxInvalidPrevTx is returned if the transaction specified an invalid
-	// previous transaction hash.
-	ErrTxInvalidPrevTx = errors.New("Invalid previous tx")
 )
 
 // Chain is a branch in a network.
@@ -66,7 +62,9 @@ func (c *Chain) CalcId() types.Hash {
 	c.RootTx.WriteToBuff(buff, 0)
 
 	h := []byte(sha256.Sha256Hex(buff.Bytes()))
-	return types.NewHash(h)
+	hash := types.NewHash(h)
+	c.Id = hash
+	return hash
 }
 
 // UpdatePayload updates payload field responsible for the security
@@ -88,22 +86,23 @@ func (c *Chain) UpdatePayload() types.Hash {
 	return c.Payload
 }
 
+// LastTx returns last tx hash in this chain.
+func (c *Chain) LastTx() types.Hash {
+	if len(c.lastTx) != 0 {
+		return c.lastTx
+	} else {
+		return c.RootTx
+	}
+}
+
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
-	var lastTx types.Hash
-	if len(c.lastTx) != 0 {
-		lastTx = c.lastTx
-	}
-	lastTx = c.RootTx
-
-	if !tx.PreviousTx.Equals(lastTx) {
-		return ErrTxInvalidPrevTx
-	}
 	_, hash := tx.Save(c.txTbl)
 
 	c.Txs = append(c.Txs, hash)
 	c.Height++
 	c.lastTx = hash
+
 	return c.chTbl.PutObject(c.Id, c)
 }
 
