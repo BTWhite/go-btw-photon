@@ -22,8 +22,6 @@ import (
 )
 
 var (
-	tbl = leveldb.CreateTable([]byte("chain"))
-
 	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
 )
 
@@ -35,6 +33,9 @@ type Chain struct {
 	RootTx  types.Hash   `json:"root_tx"`
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
+
+	txTbl *leveldb.Tbl
+	chTbl *leveldb.Tbl
 }
 
 // NewChain creates a new chain with hash name.
@@ -76,16 +77,16 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
-	_, hash := tx.Save()
+	_, hash := tx.Save(c.txTbl)
 
 	c.Txs = append(c.Txs, hash)
 	c.Height++
-	return tbl.PutObject(c.Id, c)
+	return c.chTbl.PutObject(c.Id, c)
 }
 
 // GetTx gets a transaction from the chain.
 func (c *Chain) GetTx(hash types.Hash) (error, *types.Tx) {
-	err, tx := types.GetTx(hash)
+	err, tx := types.GetTx(hash, c.txTbl)
 	if err != nil {
 		return err, nil
 	}

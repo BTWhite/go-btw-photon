@@ -18,8 +18,6 @@ import (
 )
 
 var (
-	tbl = leveldb.CreateTable([]byte("tx"))
-
 	// ErrTxAlreadyExist is returned if tx already exist in tx list.
 	ErrTxAlreadyExist = errors.New("Tx already exist")
 
@@ -82,7 +80,7 @@ func (t *Tx) Mine() {
 }
 
 // Save writes a tx to the database.
-func (t *Tx) Save() (error, Hash) {
+func (t *Tx) Save(tbl *leveldb.Tbl) (error, Hash) {
 	exist, err := tbl.Has(t.Id)
 
 	if err != nil {
@@ -98,7 +96,7 @@ func (t *Tx) Save() (error, Hash) {
 }
 
 // GetTx tries to find a transaction in the entire network by its hash.
-func GetTx(hash Hash) (error, *Tx) {
+func GetTx(hash Hash, tbl *leveldb.Tbl) (error, *Tx) {
 	exist, err := tbl.Has(hash)
 	if err != nil {
 		return err, nil

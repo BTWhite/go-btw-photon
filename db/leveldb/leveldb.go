@@ -16,15 +16,15 @@ import (
 )
 
 type Tbl struct {
+	db     *Db
 	prefix []byte
 }
 
-var inst *leveldb.DB
+type Db struct {
+	core *leveldb.DB
+}
 
-func Open(filepath string) {
-	if inst != nil {
-		Close()
-	}
+func Open(filepath string) *Db {
 
 	db, err := leveldb.OpenFile(filepath, nil)
 
@@ -32,33 +32,35 @@ func Open(filepath string) {
 		panic(err.Error())
 	}
 
-	inst = db
+	return &Db{
+		core: db,
+	}
 }
 
-func Close() {
-	inst.Close()
+func (db *Db) Close() {
+	db.core.Close()
 }
 
-func Put(key []byte, value []byte) error {
-	return inst.Put(key, value, nil)
+func (db *Db) Put(key []byte, value []byte) error {
+	return db.core.Put(key, value, nil)
 }
 
-func PutObject(key []byte, obj interface{}) error {
+func (db *Db) PutObject(key []byte, obj interface{}) error {
 	var b bytes.Buffer
 	e := gob.NewEncoder(&b)
 	if err := e.Encode(obj); err != nil {
 		panic(err)
 	}
 
-	return Put(key, b.Bytes())
+	return db.Put(key, b.Bytes())
 }
 
-func Get(key []byte) ([]byte, error) {
-	return inst.Get(key, nil)
+func (db *Db) Get(key []byte) ([]byte, error) {
+	return db.core.Get(key, nil)
 }
 
-func GetObject(key []byte, obj interface{}) error {
-	tmp, err := Get(key)
+func (db *Db) GetObject(key []byte, obj interface{}) error {
+	tmp, err := db.Get(key)
 	if err != nil {
 		obj = nil
 		return err
@@ -70,37 +72,40 @@ func GetObject(key []byte, obj interface{}) error {
 	return d.Decode(obj)
 }
 
-func Delete(key []byte) error {
-	return inst.Delete(key, nil)
+func (db *Db) Delete(key []byte) error {
+	return db.core.Delete(key, nil)
 }
 
-func Has(key []byte) (bool, error) {
-	return inst.Has(key, nil)
+func (db *Db) Has(key []byte) (bool, error) {
+	return db.core.Has(key, nil)
 }
 
-func CreateTable(prefix []byte) *Tbl {
-	return &Tbl{prefix}
+func (db *Db) CreateTable(prefix []byte) *Tbl {
+	return &Tbl{
+		db:     db,
+		prefix: prefix,
+	}
 }
 
 func (t *Tbl) Put(key []byte, value []byte) error {
-	return Put(append(t.prefix, key...), value)
+	return t.db.Put(append(t.prefix, key...), value)
 }
 
 func (t *Tbl) PutObject(key []byte, obj interface{}) error {
 
-	return PutObject(append(t.prefix, key...), obj)
+	return t.db.PutObject(append(t.prefix, key...), obj)
 }
 
 func (t *Tbl) Get(key []byte) ([]byte, error) {
-	return Get(append(t.prefix, key...))
+	return t.db.Get(append(t.prefix, key...))
 }
 
 func (t *Tbl) GetObject(key []byte, obj interface{}) error {
 
-	return GetObject(append(t.prefix, key...), obj)
+	return t.db.GetObject(append(t.prefix, key...), obj)
 }
 
 func (t *Tbl) Has(key []byte) (bool, error) {
 
-	return Has(append(t.prefix, key...))
+	return t.db.Has(append(t.prefix, key...))
 }
