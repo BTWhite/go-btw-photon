@@ -12,12 +12,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
-	"github.com/BTWhite/go-btw-photon/db/sqlite3"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -39,9 +37,12 @@ type Chain struct {
 }
 
 // NewChain creates a new chain with hash name.
-func NewChain(id types.Hash) *Chain {
-	sqlite3.Init(fmt.Sprint("data/", id, ".chain"))
-	chain := &Chain{}
+func NewChain(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl) *Chain {
+
+	chain := &Chain{
+		txTbl: txTbl,
+		chTbl: chTbl,
+	}
 	return chain
 }
 

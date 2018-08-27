@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/types"
 )
@@ -23,13 +24,13 @@ type genesis struct {
 }
 
 // LoadGenesis loads the genesis chain from the file.
-func LoadGenesis(filename string) (*Chain, error) {
+func LoadGenesis(filename string, chTbl *leveldb.Tbl, txTbl *leveldb.Tbl) (*Chain, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	g := &genesis{
-		Chain: &Chain{},
+		Chain: NewChain(txTbl, chTbl),
 	}
 
 	json.FromJson(data, &g.Transactions)
