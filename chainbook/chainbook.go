@@ -51,6 +51,14 @@ func (cb *ChainBook) AddChain(c *chain.Chain) {
 	cb.Chains[c.Id.String()] = c
 }
 
+// GetChain gets chain from the chainbook list if chain exist.
+func (cb *ChainBook) GetChain(hash types.Hash) (error, *chain.Chain) {
+	if cb.Chains[hash.String()] == nil {
+		return ErrChainNotFound, nil
+	}
+	return nil, cb.Chains[hash.String()]
+}
+
 // AddTx is entry point for tx, the transaction will be transferred to the chain
 // if it exists after the transaction is obtained (call `tx.Mine`).
 // Before processing, transactions will also be changed `PreviousTx`.
@@ -80,5 +88,7 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 		return err
 	}
 
-	return cb.processor.Process(tx, c)
+	cb.processor.Process(tx, c)
+
+	return nil
 }
