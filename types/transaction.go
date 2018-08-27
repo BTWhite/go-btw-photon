@@ -42,6 +42,7 @@ type Tx struct {
 	Nonce           uint32 `json:"nonce"`
 	Height          uint32 `json:"height"`
 	Chain           Hash   `json:"chain"`
+	PreviousTx      Hash   `json:"previousTx"`
 }
 
 // NewTx creates new empty transaction.
@@ -58,9 +59,10 @@ func (t *Tx) GetBytes() []byte {
 	binary.Write(buff, binary.LittleEndian, t.Fee)
 	binary.Write(buff, binary.LittleEndian, t.Height)
 
-	t.SenderPublicKey.WriteToBuff(buff, 32)
-	t.RecipientId.WriteToBuff(buff, 32)
-	t.Chain.WriteToBuff(buff, 32)
+	t.SenderPublicKey.WriteToBuff(buff, 64)
+	t.RecipientId.WriteToBuff(buff, 64)
+	t.Chain.WriteToBuff(buff, 64)
+	t.PreviousTx.WriteToBuff(buff, 64)
 	return buff.Bytes()
 }
 
