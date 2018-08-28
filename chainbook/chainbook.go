@@ -53,10 +53,17 @@ func (cb *ChainBook) AddChain(c *chain.Chain) {
 
 // GetChain gets chain from the chainbook list if chain exist.
 func (cb *ChainBook) GetChain(hash types.Hash) (error, *chain.Chain) {
-	if cb.Chains[hash.String()] == nil {
-		return ErrChainNotFound, nil
+	var c *chain.Chain = cb.Chains[hash.String()]
+	if c == nil {
+		ch := chain.NewChain(cb.txTbl, cb.chTbl)
+		err := cb.chTbl.GetObject(hash, ch)
+		if err != nil {
+			return ErrChainNotFound, nil
+		}
+		cb.Chains[ch.Id.String()] = ch
 	}
-	return nil, cb.Chains[hash.String()]
+
+	return nil, c
 }
 
 // AddTx is entry point for tx, the transaction will be transferred to the chain
@@ -64,22 +71,15 @@ func (cb *ChainBook) GetChain(hash types.Hash) (error, *chain.Chain) {
 // Before processing, transactions will also be changed `PreviousTx`.
 // The processor's methods will also be called: `Validate` and `Process`.
 func (cb *ChainBook) AddTx(tx *types.Tx) error {
-	var c *chain.Chain = cb.Chains[tx.Chain.String()]
-	if c == nil {
-		ch := chain.NewChain(cb.txTbl, cb.chTbl)
-		err := cb.chTbl.GetObject(tx.Chain, ch)
-		if err != nil {
-			return err
-		}
-		cb.Chains[ch.Id.String()] = ch
-		c = ch
+	err, c := cb.GetChain(tx.Chain)
+	if err != nil {
+		return err
 	}
-
 	tx.PreviousTx = c.LastTx()
 	tx.Chain = c.Id
 	tx.Mine()
 
-	err := cb.processor.Validate(tx, c)
+	err = cb.processor.Validate(tx, c)
 	if err != nil {
 		return err
 	}
