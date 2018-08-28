@@ -25,6 +25,7 @@ const (
 
 var logLevel = logDebug
 
+// Init initializes a logger with the required type.
 func Init(level string) {
 	switch level {
 	case "debug":
@@ -41,6 +42,7 @@ func Init(level string) {
 	}
 }
 
+// Info responsible for the output of logs with general information.
 func Info(text ...interface{}) {
 	if logLevel == logErr {
 		return
@@ -48,6 +50,7 @@ func Info(text ...interface{}) {
 	print("info", text...)
 }
 
+// Debug responsible for the output of logs with information for debugging.
 func Debug(text ...interface{}) {
 	if logLevel != logDebug {
 		return
@@ -55,10 +58,12 @@ func Debug(text ...interface{}) {
 	print("debug", text...)
 }
 
+// Err responsible for the output of logs with error/warnign.
 func Err(text ...interface{}) {
 	print("error", text...)
 }
 
+// Fatal responsible for the output of logs with the fatal error (process exit).
 func Fatal(text ...interface{}) {
 	print("fatal", text...)
 	panic(text[0])
