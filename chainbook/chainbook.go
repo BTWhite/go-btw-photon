@@ -14,8 +14,9 @@ import (
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/interfaces"
+	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/sign"
 	"github.com/BTWhite/go-btw-photon/types"
-	"github.com/const-subject/go-btw/logger"
 )
 
 var (
@@ -96,4 +97,19 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 
 	logger.Debug("Tx", tx.Id, "processed")
 	return nil
+}
+
+// CreateTx creates and safe signing transaction
+func (cb *ChainBook) CreateTx(kp *types.KeyPair, amount types.Coin,
+	fee types.Coin, recipient types.Hash, chain types.Hash) *types.Tx {
+
+	tx := types.NewTx()
+	tx.Amount = amount
+	tx.Fee = fee
+	tx.RecipientId = recipient
+	tx.SenderId = []byte(kp.Public().Address())
+	tx.Chain = chain
+	sign.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
+
+	return tx
 }

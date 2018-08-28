@@ -33,10 +33,10 @@ type Chain struct {
 	RootTx  types.Hash   `json:"root_tx"`
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
+	Last    types.Hash   `json:"lastTx"`
 
-	txTbl  *leveldb.Tbl
-	chTbl  *leveldb.Tbl
-	lastTx types.Hash
+	txTbl *leveldb.Tbl
+	chTbl *leveldb.Tbl
 }
 
 // NewChain creates a new chain with hash name.
@@ -88,8 +88,8 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // LastTx returns last tx hash in this chain.
 func (c *Chain) LastTx() types.Hash {
-	if len(c.lastTx) != 0 {
-		return c.lastTx
+	if len(c.Last) != 0 {
+		return c.Last
 	} else {
 		return c.RootTx
 	}
@@ -101,7 +101,7 @@ func (c *Chain) AddTx(tx *types.Tx) error {
 
 	c.Txs = append(c.Txs, hash)
 	c.Height++
-	c.lastTx = hash
+	c.Last = hash
 
 	return c.chTbl.PutObject(c.Id, c)
 }

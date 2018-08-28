@@ -9,13 +9,13 @@
 package chainbook
 
 import (
-	"color/logger"
 	"errors"
 	"io/ioutil"
 	"time"
 
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/json"
+	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
