@@ -103,12 +103,15 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 func (cb *ChainBook) CreateTx(kp *types.KeyPair, amount types.Coin,
 	fee types.Coin, recipient types.Hash, chain types.Hash) *types.Tx {
 
+	_, ch := cb.GetChain(chain)
+
 	tx := types.NewTx()
 	tx.Amount = amount
 	tx.Fee = fee
 	tx.RecipientId = recipient
 	tx.SenderId = []byte(kp.Public().Address())
 	tx.Chain = chain
+	tx.PreviousTx = ch.LastTx()
 	sign.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
 
 	return tx
