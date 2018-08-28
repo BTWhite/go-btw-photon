@@ -15,6 +15,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/interfaces"
 	"github.com/BTWhite/go-btw-photon/types"
+	"github.com/const-subject/go-btw/logger"
 )
 
 var (
@@ -88,7 +89,11 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 		return err
 	}
 
-	cb.processor.Process(tx, c)
+	err = cb.processor.Process(tx, c)
+	if err != nil {
+		return err
+	}
 
+	logger.Debug("Tx", tx.Id, "processed")
 	return nil
 }
