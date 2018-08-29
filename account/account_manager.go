@@ -9,6 +9,8 @@
 package account
 
 import (
+	"sync"
+
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/types"
 )
@@ -16,6 +18,7 @@ import (
 // AccountManager searches and writes account information.
 type AccountManager struct {
 	db *leveldb.Tbl
+	mu sync.Mutex
 }
 
 // NewAccountManager creates a new AccountManager instance.
@@ -28,18 +31,22 @@ func NewAccountManager(db *leveldb.Db) *AccountManager {
 
 // Save overwrites an account in the database
 func (am *AccountManager) Save(a *Account) error {
+	am.mu.Lock()
+	defer am.mu.Unlock()
 	return am.db.PutObject(a.Address, a)
 }
 
 // Get finds an account in the database or returns a base account if it was not found.
 func (am *AccountManager) Get(address types.Hash) *Account {
 	acc := NewAccount(address)
+	am.mu.Lock()
 	ok, _ := am.db.Has(address)
 	if !ok {
 		return acc
 	}
 
 	am.db.GetObject(acc.Address, acc)
+	am.mu.Unlock()
 	return acc
 }
 
