@@ -89,7 +89,6 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 	if err != nil {
 		return err
 	}
-
 	err = cb.processor.Process(tx, c)
 	if err != nil {
 		return err

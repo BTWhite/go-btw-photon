@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"sort"
+	"sync"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
@@ -37,6 +38,7 @@ type Chain struct {
 
 	txTbl *leveldb.Tbl
 	chTbl *leveldb.Tbl
+	mu    sync.Mutex
 }
 
 // NewChain creates a new chain with hash name.
@@ -97,6 +99,8 @@ func (c *Chain) LastTx() types.Hash {
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	_, hash := tx.Save(c.txTbl)
 
 	c.Txs = append(c.Txs, hash)
