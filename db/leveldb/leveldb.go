@@ -13,6 +13,8 @@ import (
 	"encoding/gob"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type Tbl struct {
@@ -25,8 +27,17 @@ type Db struct {
 }
 
 func Open(filepath string) *Db {
-
-	db, err := leveldb.OpenFile(filepath, nil)
+	var (
+		cache   = 512
+		handles = 512
+	)
+	opts := &opt.Options{
+		OpenFilesCacheCapacity: handles,
+		BlockCacheCapacity:     cache / 2 * opt.MiB,
+		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
+		Filter:                 filter.NewBloomFilter(10),
+	}
+	db, err := leveldb.OpenFile(filepath, opts)
 
 	if err != nil {
 		panic(err.Error())
