@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"errors"
 
+	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/mine"
 )
@@ -71,6 +72,8 @@ func (t *Tx) GetBytes() []byte {
 // But it will be so fast that it will be almost unnoticeable,
 // because quite low complexity is used.
 // Look constant `complexity`.
+//
+// Deprecated: Use GenerateId.
 func (t *Tx) Mine() {
 	data := t.GetBytes()
 	cm := mine.StartMine(data, complexity, 1)
@@ -79,6 +82,13 @@ func (t *Tx) Mine() {
 	hash := mine.GetHashNonce(t.GetBytes(), nonce)
 	t.Id = hash
 	t.Nonce = nonce
+}
+
+// Generate generatates id and fills in Id field.
+func (t *Tx) GenerateId() {
+	data := t.GetBytes()
+	hash := []byte(sha256.Sha256Hex(data))
+	t.Id = hash
 }
 
 // Save writes a tx to the database.

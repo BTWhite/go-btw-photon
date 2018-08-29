@@ -69,7 +69,7 @@ func (cb *ChainBook) GetChain(hash types.Hash) (error, *chain.Chain) {
 }
 
 // AddTx is entry point for tx, the transaction will be transferred to the chain
-// if it exists after the transaction is obtained (call `tx.Mine`).
+// if it exists after the transaction is obtained (call `tx.GenerateId`).
 // Before processing, transactions will also be changed `PreviousTx`.
 // The processor's methods will also be called: `Validate` and `Process`.
 func (cb *ChainBook) AddTx(tx *types.Tx) error {
@@ -79,7 +79,7 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 	}
 	tx.PreviousTx = c.LastTx()
 	tx.Chain = c.Id
-	tx.Mine()
+	tx.GenerateId()
 
 	err = cb.processor.Validate(tx, c)
 	if err != nil {
