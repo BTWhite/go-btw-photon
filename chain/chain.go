@@ -30,11 +30,11 @@ var (
 type Chain struct {
 	Id      types.Hash   `json:"id"`
 	Height  uint32       `json:"height"`
-	RootCh  types.Hash   `json:"root_ch"`
-	RootTx  types.Hash   `json:"root_tx"`
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
 	Last    types.Hash   `json:"lastTx"`
+	RootCh  types.Hash   `json;"rootCh"`
+	RootTx  types.Hash   `json;"rootTx"`
 
 	txTbl *leveldb.Tbl
 	chTbl *leveldb.Tbl
@@ -42,7 +42,10 @@ type Chain struct {
 }
 
 // NewChain creates a new chain with hash name.
-func NewChain(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl) *Chain {
+func NewChain(db *leveldb.Db) *Chain {
+
+	chTbl := db.CreateTable([]byte("chn"))
+	txTbl := db.CreateTable([]byte("tx"))
 
 	chain := &Chain{
 		txTbl: txTbl,
@@ -72,7 +75,7 @@ func (c *Chain) CalcId() types.Hash {
 // UpdatePayload updates payload field responsible for the security
 // of transactions inside.
 func (c *Chain) UpdatePayload() types.Hash {
-	c.sortTx()
+	//c.sortTx()
 	buff := new(bytes.Buffer)
 	binary.Write(buff, binary.LittleEndian, c.Height)
 

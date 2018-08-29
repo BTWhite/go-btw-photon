@@ -6,14 +6,13 @@
 // Please note that you can use the source code for your own purposes,
 // but we do not give any warranty. For more information, refer to the GPLv3.
 
-package chainbook
+package chain
 
 import (
 	"errors"
 	"io/ioutil"
 	"time"
 
-	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/types"
@@ -32,7 +31,7 @@ func (cb *ChainBook) LoadGenesis(filename string) error {
 	if err != nil {
 		return err
 	}
-	ch := chain.NewChain(cb.txTbl, cb.chTbl)
+	ch := NewChain(cb.db)
 	ch.CalcId()
 
 	if ch.Id.Equals(genesisChain) {

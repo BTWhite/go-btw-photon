@@ -6,14 +6,12 @@
 // Please note that you can use the source code for your own purposes,
 // but we do not give any warranty. For more information, refer to the GPLv3.
 
-package chainbook
+package chain
 
 import (
 	"errors"
 
-	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
-	"github.com/BTWhite/go-btw-photon/interfaces"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/sign"
 	"github.com/BTWhite/go-btw-photon/types"
@@ -27,37 +25,41 @@ var (
 // ChainBook is a `chain manager` that controls the invocation of the necessary
 // transaction methods and chains.
 type ChainBook struct {
-	Chains    map[string]*chain.Chain
-	processor interfaces.TxProcessor
+	Chains    map[string]*Chain
+	processor TxProcessor
 	txTbl     *leveldb.Tbl
 	chTbl     *leveldb.Tbl
+	db        *leveldb.Db
 }
 
 // NewChainBook opens the chainbook.
 // Waits for a table for transactions, a table for chains, and an implementing
 // interfaces.TxProcessor object.
-func NewChainBook(txTbl *leveldb.Tbl, chTbl *leveldb.Tbl,
-	processor interfaces.TxProcessor) *ChainBook {
+func NewChainBook(db *leveldb.Db,
+	processor TxProcessor) *ChainBook {
+	chTbl := db.CreateTable([]byte("chn"))
+	txTbl := db.CreateTable([]byte("tx"))
 
 	cb := &ChainBook{
 		chTbl:     chTbl,
 		txTbl:     txTbl,
+		db:        db,
 		processor: processor,
 	}
-	cb.Chains = make(map[string]*chain.Chain)
+	cb.Chains = make(map[string]*Chain)
 	return cb
 }
 
 // AddChain add chain to the chainbook list.
-func (cb *ChainBook) AddChain(c *chain.Chain) {
+func (cb *ChainBook) AddChain(c *Chain) {
 	cb.Chains[c.Id.String()] = c
 }
 
 // GetChain gets chain from the chainbook list if chain exist.
-func (cb *ChainBook) GetChain(hash types.Hash) (*chain.Chain, error) {
-	var c *chain.Chain = cb.Chains[hash.String()]
+func (cb *ChainBook) GetChain(hash types.Hash) (*Chain, error) {
+	var c *Chain = cb.Chains[hash.String()]
 	if c == nil {
-		ch := chain.NewChain(cb.txTbl, cb.chTbl)
+		ch := NewChain(cb.db)
 		err := cb.chTbl.GetObject(hash, ch)
 		if err != nil {
 			return nil, ErrChainNotFound

@@ -6,14 +6,11 @@
 // Please note that you can use the source code for your own purposes,
 // but we do not give any warranty. For more information, refer to the GPLv3.
 
-package interfaces
+package chain
 
-import (
-	"github.com/BTWhite/go-btw-photon/chain"
-	"github.com/BTWhite/go-btw-photon/types"
-)
+import "github.com/BTWhite/go-btw-photon/types"
 
 type TxProcessor interface {
-	Process(tx *types.Tx, ch *chain.Chain) error
-	Validate(tx *types.Tx, ch *chain.Chain) error
+	Process(tx *types.Tx, ch *Chain) error
+	Validate(tx *types.Tx, ch *Chain) error
 }
