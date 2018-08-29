@@ -9,6 +9,8 @@
 package chain
 
 import (
+	"sync"
+
 	"github.com/BTWhite/go-btw-photon/account"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/sign"
@@ -28,6 +30,8 @@ type TxProcessor interface {
 type DefaultProcessor struct {
 	db *leveldb.Db
 	am *account.AccountManager
+
+	mu sync.Mutex
 }
 
 // NewProcessor creates a new DefaultProcessor.
@@ -41,6 +45,7 @@ func NewProcessor(db *leveldb.Db) *DefaultProcessor {
 // Process called directly for transaction processing.
 // Do not use this method to write to the chain, here only the results are processed.
 func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
+	p.mu.Lock()
 	recipient := p.am.Get(tx.RecipientId)
 	recipient.Balance = types.NewCoin(recipient.Balance.Uint64() + tx.Amount.Uint64())
 
@@ -58,6 +63,7 @@ func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 	if err != nil {
 		return err
 	}
+	p.mu.Unlock()
 
 	return nil
 }
