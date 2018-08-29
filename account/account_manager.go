@@ -13,20 +13,25 @@ import (
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
+// AccountManager searches and writes account information.
 type AccountManager struct {
 	db *leveldb.Tbl
 }
 
+// NewAccountManager creates a new AccountManager instance.
+// The manager works with the database, the connection of which you will give him.
 func NewAccountManager(db *leveldb.Db) *AccountManager {
 	return &AccountManager{
 		db: db.CreateTable([]byte("usr")),
 	}
 }
 
+// Save overwrites an account in the database
 func (am *AccountManager) Save(a *Account) error {
 	return am.db.PutObject(a.Address, a)
 }
 
+// Get finds an account in the database or returns a base account if it was not found.
 func (am *AccountManager) Get(address types.Hash) *Account {
 	acc := NewAccount(address)
 	ok, _ := am.db.Has(address)
@@ -38,6 +43,8 @@ func (am *AccountManager) Get(address types.Hash) *Account {
 	return acc
 }
 
+// GetByPublicKey converts a public key to an address and delegates authority
+// to the Get method.
 func (am *AccountManager) GetByPublicKey(pub types.PublicKey) *Account {
 	return am.Get([]byte(pub.Address()))
 }

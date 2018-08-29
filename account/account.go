@@ -10,12 +10,16 @@ package account
 
 import "github.com/BTWhite/go-btw-photon/types"
 
+// Account is account information storage structure.
 type Account struct {
 	Address   types.Hash
 	PublicKey types.PublicKey
 	Balance   types.Coin
 }
 
+// NewAccount creates a blank account with address.
+// If you want to receive valid information about the status of your account,
+// go to the AccountManager.
 func NewAccount(address types.Hash) *Account {
 	return &Account{
 		Address: address,
