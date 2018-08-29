@@ -92,16 +92,19 @@ func (c *Chain) UpdatePayload() types.Hash {
 func (c *Chain) LastTx() types.Hash {
 	if len(c.Last) != 0 {
 		return c.Last
-	} else {
-		return c.RootTx
 	}
+	return c.RootTx
 }
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	_, hash := tx.Save(c.txTbl)
+	hash, err := tx.Save(c.txTbl)
+
+	if err != nil {
+		return err
+	}
 
 	c.Txs = append(c.Txs, hash)
 	c.Height++
@@ -111,17 +114,17 @@ func (c *Chain) AddTx(tx *types.Tx) error {
 }
 
 // GetTx gets a transaction from the chain.
-func (c *Chain) GetTx(hash types.Hash) (error, *types.Tx) {
-	err, tx := types.GetTx(hash, c.txTbl)
+func (c *Chain) GetTx(hash types.Hash) (*types.Tx, error) {
+	tx, err := types.GetTx(hash, c.txTbl)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	if !tx.Chain.Equals(c.Id) {
-		return ErrTxNotFoundInChain, nil
+		return nil, ErrTxNotFoundInChain
 	}
 
-	return nil, tx
+	return tx, nil
 }
 
 func (c *Chain) sortTx() {

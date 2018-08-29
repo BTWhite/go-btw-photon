@@ -84,7 +84,7 @@ func (t *Tx) Mine() {
 	t.Nonce = nonce
 }
 
-// Generate generatates id and fills in Id field.
+// GenerateId generatates id and fills in Id field.
 func (t *Tx) GenerateId() {
 	data := t.GetBytes()
 	hash := []byte(sha256.Sha256Hex(data))
@@ -92,36 +92,37 @@ func (t *Tx) GenerateId() {
 }
 
 // Save writes a tx to the database.
-func (t *Tx) Save(tbl *leveldb.Tbl) (error, Hash) {
+func (t *Tx) Save(tbl *leveldb.Tbl) (Hash, error) {
 	exist, err := tbl.Has(t.Id)
 
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	if exist {
-		return ErrTxAlreadyExist, t.Id
+		return t.Id, ErrTxAlreadyExist
 	}
 
-	tbl.PutObject(t.Id, t)
-	return nil, t.Id
+	err = tbl.PutObject(t.Id, t)
+
+	return t.Id, err
 }
 
 // GetTx tries to find a transaction in the entire network by its hash.
-func GetTx(hash Hash, tbl *leveldb.Tbl) (error, *Tx) {
+func GetTx(hash Hash, tbl *leveldb.Tbl) (*Tx, error) {
 	exist, err := tbl.Has(hash)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	if !exist {
-		return ErrTxNotFound, nil
+		return nil, ErrTxNotFound
 	}
 
 	tx := NewTx()
 	err = tbl.GetObject(hash, tx)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, tx
+	return tx, nil
 }

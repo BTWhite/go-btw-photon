@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	unit_coin uint64 = 100000000
+	unitCoin uint64 = 100000000
 )
 
 // Coin is the type for safe interaction with the values of the number of coins.
@@ -29,12 +29,12 @@ func NewCoin(u uint64) Coin {
 // String returns a string with the number of coins understandable to the user.
 func (c Coin) String() string {
 	cf := big.NewFloat(float64(c))
-	cu := big.NewFloat(float64(unit_coin))
+	cu := big.NewFloat(float64(unitCoin))
 
 	return big.NewFloat(0).Quo(cf, cu).String()
 }
 
-// Uiint64 return the root view of the coin in uint64.
+// Uint64 return the root view of the coin in uint64.
 func (c Coin) Uint64() uint64 {
 	return uint64(c)
 }
