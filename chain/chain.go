@@ -11,19 +11,12 @@ package chain
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"sort"
 	"sync"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/types"
-)
-
-var (
-	// ErrTxNotFoundInChain is returned if the transaction is not found
-	// or is not in a particular chain.
-	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
 )
 
 // Chain is a branch in a network.

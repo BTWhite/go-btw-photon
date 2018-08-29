@@ -9,17 +9,10 @@
 package chain
 
 import (
-	"errors"
-
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/sign"
 	"github.com/BTWhite/go-btw-photon/types"
-)
-
-var (
-	// ErrChainNotFound is returned is chain not found when writing a new transaction.
-	ErrChainNotFound = errors.New("Chain not found")
 )
 
 // ChainBook is a `chain manager` that controls the invocation of the necessary

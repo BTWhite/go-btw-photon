@@ -9,7 +9,6 @@
 package chain
 
 import (
-	"errors"
 	"io/ioutil"
 	"time"
 
@@ -20,9 +19,6 @@ import (
 
 var (
 	genesisChain = types.NewHash([]byte("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
-
-	// ErrGenesisLoaded returned if genesis chain already been loaded.
-	ErrGenesisLoaded = errors.New("The genesis chain has already been loaded")
 )
 
 // LoadGenesis loads the genesis chain from the file.

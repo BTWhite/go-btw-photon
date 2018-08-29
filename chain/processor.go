@@ -9,24 +9,10 @@
 package chain
 
 import (
-	"errors"
-
 	"github.com/BTWhite/go-btw-photon/account"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/sign"
 	"github.com/BTWhite/go-btw-photon/types"
-)
-
-var (
-	// ErrTxInvalidPrevTx is returned if the transaction specified an invalid
-	// previous transaction hash.
-	ErrTxInvalidPrevTx = errors.New("Invalid previous tx")
-
-	// ErrTxInvalidSignature is returned if signature incorrect.
-	ErrTxInvalidSignature = errors.New("Invalid tx signature")
-
-	// ErrTxInsufficientBalance is returned is sender does not have enough coins.
-	ErrTxInsufficientBalance = errors.New("Insufficient balance")
 )
 
 // TxProcessor responsible for the validation of the transaction and its processing.
