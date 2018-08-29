@@ -29,6 +29,15 @@ var (
 	ErrTxInsufficientBalance = errors.New("Insufficient balance")
 )
 
+// TxProcessor responsible for the validation of the transaction and its processing.
+type TxProcessor interface {
+	// Process processes the transaction, but does not write to the chain.
+	Process(tx *types.Tx, ch *Chain) error
+
+	// Validate checks the transaction for validity.
+	Validate(tx *types.Tx, ch *Chain) error
+}
+
 // DefaultProcessor is the base processor for blocks.
 type DefaultProcessor struct {
 	db *leveldb.Db
