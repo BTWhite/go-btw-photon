@@ -12,8 +12,8 @@ import (
 	"sync"
 
 	"github.com/BTWhite/go-btw-photon/account"
+	"github.com/BTWhite/go-btw-photon/crypto/sign"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
-	"github.com/BTWhite/go-btw-photon/sign"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
