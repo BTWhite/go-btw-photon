@@ -10,7 +10,6 @@ package chain
 
 import (
 	"io/ioutil"
-	"time"
 
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
@@ -44,7 +43,7 @@ func (cb *ChainBook) LoadGenesis(filename string) error {
 
 	for _, tx := range txs {
 		tx.Chain = ch.Id
-		tx.Timestamp = time.Now().Unix()
+
 		err := cb.AddTx(tx)
 
 		if err != nil {
