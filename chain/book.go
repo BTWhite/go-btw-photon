@@ -95,9 +95,12 @@ func (cb *ChainBook) AddTx(tx *types.Tx) error {
 
 // CreateTx creates and safe signing transaction
 func (cb *ChainBook) CreateTx(kp *types.KeyPair, amount types.Coin,
-	fee types.Coin, recipient types.Hash, chain types.Hash) *types.Tx {
+	fee types.Coin, recipient types.Hash, chain types.Hash) (*types.Tx, error) {
 
-	ch, _ := cb.GetChain(chain)
+	ch, err := cb.GetChain(chain)
+	if err != nil {
+		return nil, err
+	}
 
 	tx := types.NewTx()
 	tx.Amount = amount
@@ -108,5 +111,5 @@ func (cb *ChainBook) CreateTx(kp *types.KeyPair, amount types.Coin,
 	tx.PreviousTx = ch.LastTx()
 	sign.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
 
-	return tx
+	return tx, nil
 }

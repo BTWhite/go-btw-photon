@@ -120,10 +120,13 @@ func createTx(cb *chain.ChainBook, am *account.AccountManager) {
 	fmt.Print("Amount: ")
 	fmt.Scanf("%d", &tmpI)
 
-	tx := cb.CreateTx(kp, types.NewCoin(tmpI), types.NewCoin(10000000),
+	tx, err := cb.CreateTx(kp, types.NewCoin(tmpI), types.NewCoin(10000000),
 		types.NewHash([]byte(tmp)), []byte("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
+	if err != nil {
+		logger.Err(err.Error())
+	}
 
-	err := cb.AddTx(tx)
+	err = cb.AddTx(tx)
 	if err != nil {
 		logger.Err(err.Error())
 	}
