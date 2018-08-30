@@ -19,6 +19,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
+// ChainHelper is an assistant for management of chains and transactions.
 type ChainHelper struct {
 	db    *leveldb.Db
 	tblTx *leveldb.Tbl
@@ -28,6 +29,8 @@ type ChainHelper struct {
 	mu    sync.Mutex
 }
 
+// NewChainHelper creates chain helper instance with database tables, TxProcessor
+// and AccountManager instances.
 func NewChainHelper(db *leveldb.Db) *ChainHelper {
 	h := &ChainHelper{
 		db:    db,
@@ -40,14 +43,17 @@ func NewChainHelper(db *leveldb.Db) *ChainHelper {
 	return h
 }
 
+// GetChainByAddress gets chain by address wallet.
 func (h *ChainHelper) GetChainByAddress(address []byte) (*Chain, error) {
 	return h.GetChainById([]byte(sha256.Sha256Hex(address)))
 }
 
+// GetChainById gets chain by chainid.
 func (h *ChainHelper) GetChainById(id []byte) (*Chain, error) {
 	return NewChain(h.db, h.proc, id, nil)
 }
 
+// NewTx prepares new transaction for wallet chain.
 func (h *ChainHelper) NewTx(kp *types.KeyPair, amount types.Coin, fee types.Coin,
 	recipient types.Hash) (*types.Tx, error) {
 
@@ -79,6 +85,7 @@ func (h *ChainHelper) NewTx(kp *types.KeyPair, amount types.Coin, fee types.Coin
 	return tx, nil
 }
 
+// ProcessTx write tx to the database and process its.
 func (h *ChainHelper) ProcessTx(tx *types.Tx) error {
 	sch, err := h.GetChainByAddress(tx.SenderId)
 	if err != nil {
@@ -102,10 +109,12 @@ func (h *ChainHelper) ProcessTx(tx *types.Tx) error {
 	return rch.Save()
 }
 
+// AccountManager gets AccountManager instance.
 func (h *ChainHelper) AccountManager() *account.AccountManager {
 	return h.am
 }
 
+// GetTx find tx by delegate types.GetTx
 func (h *ChainHelper) GetTx(hash types.Hash) (*types.Tx, error) {
 	return types.GetTx(hash, h.tblTx)
 }
