@@ -9,18 +9,10 @@
 package leveldb
 
 import (
-	"bytes"
-	"encoding/gob"
-
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
-
-type Tbl struct {
-	db     *Db
-	prefix []byte
-}
 
 type Db struct {
 	core *leveldb.DB
@@ -57,13 +49,11 @@ func (db *Db) Put(key []byte, value []byte) error {
 }
 
 func (db *Db) PutObject(key []byte, obj interface{}) error {
-	var b bytes.Buffer
-	e := gob.NewEncoder(&b)
-	if err := e.Encode(obj); err != nil {
-		panic(err)
+	b, err := encode(obj)
+	if err != nil {
+		return err
 	}
-
-	return db.Put(key, b.Bytes())
+	return db.Put(key, b)
 }
 
 func (db *Db) Get(key []byte) ([]byte, error) {
@@ -73,14 +63,10 @@ func (db *Db) Get(key []byte) ([]byte, error) {
 func (db *Db) GetObject(key []byte, obj interface{}) error {
 	tmp, err := db.Get(key)
 	if err != nil {
-		obj = nil
 		return err
 	}
 
-	var b bytes.Buffer
-	b.Write(tmp)
-	d := gob.NewDecoder(&b)
-	return d.Decode(obj)
+	return decode(tmp, obj)
 }
 
 func (db *Db) Delete(key []byte) error {
@@ -89,34 +75,4 @@ func (db *Db) Delete(key []byte) error {
 
 func (db *Db) Has(key []byte) (bool, error) {
 	return db.core.Has(key, nil)
-}
-
-func (db *Db) CreateTable(prefix []byte) *Tbl {
-	return &Tbl{
-		db:     db,
-		prefix: prefix,
-	}
-}
-
-func (t *Tbl) Put(key []byte, value []byte) error {
-	return t.db.Put(append(t.prefix, key...), value)
-}
-
-func (t *Tbl) PutObject(key []byte, obj interface{}) error {
-
-	return t.db.PutObject(append(t.prefix, key...), obj)
-}
-
-func (t *Tbl) Get(key []byte) ([]byte, error) {
-	return t.db.Get(append(t.prefix, key...))
-}
-
-func (t *Tbl) GetObject(key []byte, obj interface{}) error {
-
-	return t.db.GetObject(append(t.prefix, key...), obj)
-}
-
-func (t *Tbl) Has(key []byte) (bool, error) {
-
-	return t.db.Has(append(t.prefix, key...))
 }
