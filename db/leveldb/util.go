@@ -30,3 +30,7 @@ func encode(obj interface{}) ([]byte, error) {
 
 	return b.Bytes(), nil
 }
+
+func prefix(a []byte, b []byte) []byte {
+	return append(a, b...)
+}

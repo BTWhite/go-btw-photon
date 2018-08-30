@@ -21,24 +21,24 @@ func (db *Db) CreateTable(prefix []byte) *Tbl {
 }
 
 func (t *Tbl) Put(key []byte, value []byte) error {
-	return t.db.Put(append(t.prefix, key...), value)
+	return t.db.Put(prefix(t.prefix, key), value)
 }
 
 func (t *Tbl) PutObject(key []byte, obj interface{}) error {
 
-	return t.db.PutObject(append(t.prefix, key...), obj)
+	return t.db.PutObject(prefix(t.prefix, key), obj)
 }
 
 func (t *Tbl) Get(key []byte) ([]byte, error) {
-	return t.db.Get(append(t.prefix, key...))
+	return t.db.Get(prefix(t.prefix, key))
 }
 
 func (t *Tbl) GetObject(key []byte, obj interface{}) error {
 
-	return t.db.GetObject(append(t.prefix, key...), obj)
+	return t.db.GetObject(prefix(t.prefix, key), obj)
 }
 
 func (t *Tbl) Has(key []byte) (bool, error) {
 
-	return t.db.Has(append(t.prefix, key...))
+	return t.db.Has(prefix(t.prefix, key))
 }

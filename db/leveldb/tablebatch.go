@@ -21,13 +21,13 @@ func (b *Batch) CreateTableBatch(prefix []byte) *TblBatch {
 }
 
 func (t *TblBatch) Put(key []byte, value []byte) error {
-	return t.b.Put(append(t.prefix, key...), value)
+	return t.b.Put(prefix(t.prefix, key), value)
 }
 
 func (t *TblBatch) PutObject(key []byte, obj interface{}) error {
-	return t.b.PutObject(append(t.prefix, key...), obj)
+	return t.b.PutObject(prefix(t.prefix, key), obj)
 }
 
 func (t *TblBatch) Delete(key []byte) error {
-	return t.b.Delete(append(t.prefix, key...))
+	return t.b.Delete(prefix(t.prefix, key))
 }
