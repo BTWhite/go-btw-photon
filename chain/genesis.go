@@ -48,13 +48,13 @@ func LoadGenesis(filename string, h *ChainHelper) error {
 
 		tx.Chain = ch.Id
 		tx.GenerateId()
+		ch.AddTxLink(tx.Id)
 		err := h.ProcessTx(tx)
 
 		if err != nil {
 			return err
 		}
 	}
-
 	ch.UpdatePayload()
 	ch.Save()
 	return nil
