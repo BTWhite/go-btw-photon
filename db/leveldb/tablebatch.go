@@ -31,3 +31,11 @@ func (t *TblBatch) PutObject(key []byte, obj interface{}) error {
 func (t *TblBatch) Delete(key []byte) error {
 	return t.b.Delete(append(t.prefix, key...))
 }
+
+func (t *TblBatch) Write() error {
+ return t.b.Write()
+}
+
+func (t *TblBatch) Reset() {
+ t.b.Reset()
+}
