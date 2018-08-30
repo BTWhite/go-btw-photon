@@ -22,6 +22,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/snapshot"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -29,6 +30,8 @@ func main() {
 	logger.Init("debug")
 	logger.Debug("BitWhite Node starting...")
 	db := leveldb.Open("data/")
+
+	snapshot.NewSnapShotManager(db)
 	h := chain.NewChainHelper(db)
 
 	err := chain.LoadGenesis("genesis.json", h)
@@ -112,6 +115,10 @@ func createTx(h *chain.ChainHelper) {
 
 	fmt.Print("To: ")
 	fmt.Scanf("%s", &tmp)
+	for !types.HasAddr([]byte(tmp)) {
+		fmt.Print("Write correct address: ")
+		fmt.Scanf("%s", &tmp)
+	}
 
 	fmt.Println("To address:", tmp, "| Balance:", am.Get([]byte(tmp)).Balance)
 

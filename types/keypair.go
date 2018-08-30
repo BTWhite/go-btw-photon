@@ -14,6 +14,7 @@ import (
 
 	"github.com/BTWhite/go-btw-photon/crypto/base58"
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
+	"github.com/BTWhite/go-btw-photon/utils"
 	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ripemd160"
 )
@@ -67,7 +68,7 @@ func (k *PublicKey) Address() string {
 	sum := ripemd.Sum([]byte{})
 
 	buffer := bytes.NewBuffer(nil)
-	//buffer.WriteString(global.ADDR_PREFIX)
+	buffer.WriteString(utils.ADDR_PREFIX)
 	buffer.Write(base58.Check(sum))
 
 	return buffer.String()
@@ -77,4 +78,8 @@ func (k *PublicKey) Address() string {
 func NewPublicKeyByHex(s string) PublicKey {
 	b, _ := hex.DecodeString(s)
 	return PublicKey(b)
+}
+
+func HasAddr(addr []byte) bool {
+	return len(addr) > 2 && addr[0] == 'B' && addr[1] == '0'
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/BTWhite/go-btw-photon/types"
+	"github.com/BTWhite/go-btw-photon/utils"
 )
 
 func TestHex(t *testing.T) {
@@ -25,10 +26,10 @@ func TestHex(t *testing.T) {
 
 func TestHexAddress(t *testing.T) {
 	pub := types.NewPublicKeyByHex("6343b517c40fa0c733599bb9291b8482b7ca9a16297446ab7ac9de0f148eaf4c")
-	want := "7MxUWmF6gJFcX1VJdXUMDvd9HxjKpxDfF"
+	want := utils.ADDR_PREFIX + "7MxUWmF6gJFcX1VJdXUMDvd9HxjKpxDfF"
 
 	if pub.Address() != want {
-		t.Error("PublicKeyByHex incorrect, got: " + pub.Address() + ", want: " + want)
+		t.Error("Address incorrect, got: " + pub.Address() + ", want: " + want)
 	}
 }
 
