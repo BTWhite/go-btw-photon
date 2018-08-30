@@ -19,10 +19,10 @@ import (
 )
 
 // SecretKey this is a private key.
-type SecretKey []byte
+type SecretKey Hash
 
 // PublicKey this is a public key.
-type PublicKey []byte
+type PublicKey Hash
 
 // KeyPair this is a pair of keys: private and public.
 type KeyPair struct {

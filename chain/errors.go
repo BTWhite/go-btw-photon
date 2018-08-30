@@ -28,6 +28,15 @@ var (
 	// or is not in a particular chain.
 	ErrTxNotFoundInChain = errors.New("Tx not found in chain")
 
+	// ErrTxAlreadyExist is returned if tx already exist in tx list.
+	ErrTxAlreadyExist = errors.New("Tx already exist")
+
+	// ErrTxNil if a null pointer was passed when creating a chain
+	ErrChainTxNil = errors.New("Genesis tx is nil")
+
 	// ErrChainNotFound is returned is chain not found when writing a new transaction.
 	ErrChainNotFound = errors.New("Chain not found")
+
+	// ErrChainEmpty is returned is chain empty.
+	ErrChainEmpty = errors.New("Chain empty")
 )

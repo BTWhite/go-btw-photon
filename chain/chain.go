@@ -16,6 +16,7 @@ import (
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -25,44 +26,46 @@ type Chain struct {
 	Height  uint32       `json:"height"`
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
-	Last    types.Hash   `json:"lastTx"`
-	RootCh  types.Hash   `json;"rootCh"`
-	RootTx  types.Hash   `json;"rootTx"`
 
 	txTbl *leveldb.Tbl
 	chTbl *leveldb.Tbl
+	proc  TxProcessor
 	mu    sync.Mutex
+	muATX sync.Mutex
 }
 
 // NewChain creates a new chain with hash name.
-func NewChain(db *leveldb.Db) *Chain {
+func NewChain(db *leveldb.Db, proc TxProcessor, id types.Hash,
+	genesisTx *types.Tx) (*Chain, error) {
 
 	chTbl := db.CreateTable([]byte("chn"))
 	txTbl := db.CreateTable([]byte("tx"))
 
 	chain := &Chain{
+		Id:    id,
 		txTbl: txTbl,
 		chTbl: chTbl,
+		proc:  proc,
 	}
-	return chain
+
+	chain.chTbl.GetObject(id, chain)
+
+	if genesisTx != nil {
+		err := chain.AddTx(genesisTx)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	chain.UpdatePayload()
+
+	return chain, nil
 }
 
 // Save writes chain to the database.
 func (c *Chain) Save() error {
 	return c.chTbl.PutObject(c.Id, c)
-}
-
-// CalcId calculates a hash of a chain by byte representation.
-func (c *Chain) CalcId() types.Hash {
-	buff := new(bytes.Buffer)
-
-	c.RootCh.WriteToBuff(buff, 0)
-	c.RootTx.WriteToBuff(buff, 0)
-
-	h := []byte(sha256.Sha256Hex(buff.Bytes()))
-	hash := types.NewHash(h)
-	c.Id = hash
-	return hash
 }
 
 // UpdatePayload updates payload field responsible for the security
@@ -86,25 +89,38 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // LastTx returns last tx hash in this chain.
 func (c *Chain) LastTx() types.Hash {
-	if len(c.Last) != 0 {
-		return c.Last
+	if len(c.Txs) > 0 {
+		return c.Txs[0]
 	}
-	return c.RootTx
+	return nil
 }
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
+	_, err := types.GetTx(tx.Id, c.txTbl)
+	if err == nil {
+		return ErrTxAlreadyExist
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	hash, err := tx.Save(c.txTbl)
 
+	err = c.proc.Validate(tx, c)
 	if err != nil {
 		return err
 	}
 
-	c.Txs = append(c.Txs, hash)
-	c.Height++
-	c.Last = hash
+	err = c.proc.Process(tx, c)
+	if err != nil {
+		return err
+	}
+
+	hash, err := tx.Save(c.txTbl)
+	if err != nil {
+		return err
+	}
+
+	c.AddTxLink(hash)
+	logger.Debug("Tx", tx.Id, "processed")
 
 	return c.chTbl.PutObject(c.Id, c)
 }
@@ -123,8 +139,30 @@ func (c *Chain) GetTx(hash types.Hash) (*types.Tx, error) {
 	return tx, nil
 }
 
+func CreateTx(kp *types.KeyPair, amount types.Coin,
+	fee types.Coin, recipient types.Hash) (*types.Tx, error) {
+
+	tx := types.NewTx()
+	tx.Amount = amount
+	tx.Fee = fee
+	tx.RecipientId = recipient
+	tx.SenderId = []byte(kp.Public().Address())
+	tx.Chain = []byte(sha256.Sha256Hex(tx.SenderId))
+
+	//	sign.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
+
+	return tx, nil
+}
+
 func (c *Chain) sortTx() {
 	sort.Slice(c.Txs, func(a, b int) bool {
 		return c.Txs[a].String() < c.Txs[b].String()
 	})
+}
+
+func (c *Chain) AddTxLink(id types.Hash) {
+	c.muATX.Lock()
+	c.Txs = append(c.Txs, id)
+	c.Height++
+	c.muATX.Unlock()
 }

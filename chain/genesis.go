@@ -21,30 +21,34 @@ var (
 )
 
 // LoadGenesis loads the genesis chain from the file.
-func (cb *ChainBook) LoadGenesis(filename string) error {
+func LoadGenesis(filename string, h *ChainHelper) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
-	ch := NewChain(cb.db)
-	ch.CalcId()
-
-	if ch.Id.Equals(genesisChain) {
-		_, err := cb.GetChain(genesisChain)
-		if err == nil {
-			return ErrGenesisLoaded
-		}
-	}
-	logger.Debug("Loading genesis chain...")
-	cb.AddChain(ch)
 
 	var txs []*types.Tx
 	json.FromJson(data, &txs)
+	if len(txs) == 0 {
+		return nil
+	}
+
+	ch, err := h.GetChainById(genesisChain)
+	if err != nil {
+		return err
+	}
+
+	if len(ch.Txs) > 0 {
+		return ErrGenesisLoaded
+	}
+
+	logger.Debug("Loading genesis chain...")
 
 	for _, tx := range txs {
-		tx.Chain = ch.Id
 
-		err := cb.AddTx(tx)
+		tx.Chain = ch.Id
+		tx.GenerateId()
+		err := h.ProcessTx(tx)
 
 		if err != nil {
 			return err
@@ -52,7 +56,6 @@ func (cb *ChainBook) LoadGenesis(filename string) error {
 	}
 
 	ch.UpdatePayload()
-	ch.CalcId()
 	ch.Save()
 	return nil
 }
