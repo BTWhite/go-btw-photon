@@ -12,10 +12,6 @@ import (
 	"testing"
 )
 
-func init() {
-	Init()
-}
-
 func TestEncode(t *testing.T) {
 	encoded := Encode([]byte("Hello World"))
 	want := "JxF12TrwUP45BMd"

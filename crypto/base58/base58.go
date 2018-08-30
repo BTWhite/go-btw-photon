@@ -12,9 +12,7 @@ const alphabet string = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvw
 
 var indexes []int = make([]int, 128)
 
-// Init is necessary for correct operation of decoding.
-// You must call this function once before using the package.
-func Init() {
+func init() {
 	var i int
 	for i < len(indexes) {
 		indexes[i] = -1
