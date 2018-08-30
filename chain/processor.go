@@ -46,6 +46,7 @@ func NewProcessor(db *leveldb.Db) *DefaultProcessor {
 // Do not use this method to write to the chain, here only the results are processed.
 func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 	p.mu.Lock()
+	defer p.mu.Unlock()
 	recipient := p.am.Get(tx.RecipientId)
 	recipient.Balance = types.NewCoin(recipient.Balance.Uint64() + tx.Amount.Uint64())
 
@@ -63,7 +64,6 @@ func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 	if err != nil {
 		return err
 	}
-	p.mu.Unlock()
 
 	return nil
 }
