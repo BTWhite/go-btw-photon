@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BTWhite/go-btw-photon/account"
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/json"
@@ -30,15 +29,12 @@ func main() {
 	logger.Init("debug")
 	logger.Debug("BitWhite Node starting...")
 	db := leveldb.Open("data/")
-	txTbl := db.CreateTable([]byte("tx"))
+	h := chain.NewChainHelper(db)
 
-	cb := chain.NewChainBook(db, chain.NewProcessor(db))
-	err := cb.LoadGenesis("genesis.json")
-	if err != nil && err != chain.ErrGenesisLoaded {
-		panic(err.Error())
+	err := chain.LoadGenesis("genesis.json", h)
+	if err != nil {
+		logger.Debug(err.Error())
 	}
-	cb.GetChain([]byte("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
-	am := account.NewAccountManager(db)
 
 	for true {
 		var tmp string
@@ -47,13 +43,13 @@ func main() {
 
 		switch tmp {
 		case "tx":
-			createTx(cb, am)
+			createTx(h)
 		case "gettx":
-			getTx(txTbl)
+			getTx(h)
 		case "balance":
-			getBalance(am)
+			getBalance(h)
 		case "chain":
-			getChain(cb)
+			getChain(h)
 		}
 	}
 }
@@ -73,12 +69,13 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
-func getChain(cb *chain.ChainBook) {
+func getChain(h *chain.ChainHelper) {
 	var tmp string
 	fmt.Print("Chain: ")
 	fmt.Scanf("%s", &tmp)
 
-	ch, err := cb.GetChain([]byte(tmp))
+	ch, err := h.GetChainById([]byte(tmp))
+
 	if err != nil {
 		logger.Err(err.Error())
 		return
@@ -87,12 +84,12 @@ func getChain(cb *chain.ChainBook) {
 	logger.Info(string(json.ToJson(ch)))
 }
 
-func getTx(txTbl *leveldb.Tbl) {
+func getTx(h *chain.ChainHelper) {
 	var tmp string
 	fmt.Print("Tx: ")
 	fmt.Scanf("%s", &tmp)
 
-	tx, err := types.GetTx(types.NewHash([]byte(tmp)), txTbl)
+	tx, err := h.GetTx([]byte(tmp))
 
 	if err != nil {
 		logger.Err(err.Error())
@@ -102,11 +99,12 @@ func getTx(txTbl *leveldb.Tbl) {
 	logger.Info(string(json.ToJson(tx)))
 }
 
-func createTx(cb *chain.ChainBook, am *account.AccountManager) {
+func createTx(h *chain.ChainHelper) {
 	var tmp string
 	var tmpI uint64
 	fmt.Print("Secret: ")
 	fmt.Scanf("%s", &tmp)
+	am := h.AccountManager()
 
 	kp := types.NewKeyPair([]byte(tmp))
 	fmt.Println("Address:", kp.Public().Address(), "| Balance:",
@@ -120,22 +118,24 @@ func createTx(cb *chain.ChainBook, am *account.AccountManager) {
 	fmt.Print("Amount: ")
 	fmt.Scanf("%d", &tmpI)
 
-	tx, err := cb.CreateTx(kp, types.NewCoin(tmpI), types.NewCoin(10000000),
-		types.NewHash([]byte(tmp)), []byte("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
+	tx, err := h.NewTx(kp, types.Coin(tmpI), types.Coin(10000000), []byte(tmp))
 	if err != nil {
 		logger.Err(err.Error())
+		return
 	}
 
-	err = cb.AddTx(tx)
+	err = h.ProcessTx(tx)
+
 	if err != nil {
 		logger.Err(err.Error())
 	}
 }
 
-func getBalance(am *account.AccountManager) {
+func getBalance(h *chain.ChainHelper) {
 	var tmp string
 	fmt.Print("Address: ")
 	fmt.Scanf("%s", &tmp)
+	am := h.AccountManager()
 
 	acc := am.Get([]byte(tmp))
 
