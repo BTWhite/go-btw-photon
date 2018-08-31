@@ -26,8 +26,8 @@ type AccountManager struct {
 // The manager works with the database, the connection of which you will give him.
 func NewAccountManager(db *leveldb.Db) *AccountManager {
 	return &AccountManager{
-		db: db.CreateTable([]byte("usr")), 
-	        bt: db.CreateBatch().CreateTableBatch([]byte("usr")),
+		db: db.CreateTable([]byte("usr")),
+		bt: db.NewBatch().CreateTableBatch([]byte("usr")),
 	}
 }
 
@@ -42,8 +42,8 @@ func (am *AccountManager) Save(a *Account) error {
 // Commit commiting all changes from batch.
 func (am *AccountManager) Commit() error {
 	err := am.bt.Write()
- 	am.bt.reset()
- 	return err
+	am.bt.Reset()
+	return err
 }
 
 // Get finds an account in the database or returns a base account if it was not found.

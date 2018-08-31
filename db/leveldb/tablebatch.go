@@ -33,9 +33,9 @@ func (t *TblBatch) Delete(key []byte) error {
 }
 
 func (t *TblBatch) Write() error {
- return t.b.Write()
+	return t.b.Write()
 }
 
 func (t *TblBatch) Reset() {
- t.b.Reset()
+	t.b.Reset()
 }
