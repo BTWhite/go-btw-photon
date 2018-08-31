@@ -19,13 +19,15 @@ import (
 type AccountManager struct {
 	db *leveldb.Tbl
 	mu sync.Mutex
+	bt *leveldb.TblBatch
 }
 
 // NewAccountManager creates a new AccountManager instance.
 // The manager works with the database, the connection of which you will give him.
 func NewAccountManager(db *leveldb.Db) *AccountManager {
 	return &AccountManager{
-		db: db.CreateTable([]byte("usr")),
+		db: db.CreateTable([]byte("usr")), 
+	        bt: db.CreateBatch().CreateTableBatch([]byte("usr")),
 	}
 }
 
@@ -35,6 +37,13 @@ func (am *AccountManager) Save(a *Account) error {
 	err := am.db.PutObject(a.Address, a)
 	am.mu.Unlock()
 	return err
+}
+
+// Commit commiting all changes from batch.
+func (am *AccountManager) Commit() error {
+	err := am.bt.Write()
+ 	am.bt.reset()
+ 	return err
 }
 
 // Get finds an account in the database or returns a base account if it was not found.

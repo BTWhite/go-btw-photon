@@ -65,7 +65,7 @@ func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 		return err
 	}
 
-	return nil
+	return p.am.Commit()
 }
 
 // Validate called before the transaction is written, if nil is returned,
