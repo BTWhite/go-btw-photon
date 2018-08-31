@@ -16,6 +16,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/crypto/sign"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/events"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -106,7 +107,11 @@ func (h *ChainHelper) ProcessTx(tx *types.Tx) error {
 	}
 	rch.AddTxLink(tx.Id)
 
-	return rch.Save()
+	err = rch.Save()
+	e := new(events.Event)
+	e.SetBytes(tx.Id)
+	events.Push("newtx", e)
+	return err
 }
 
 // AccountManager gets AccountManager instance.
@@ -117,4 +122,8 @@ func (h *ChainHelper) AccountManager() *account.AccountManager {
 // GetTx find tx by delegate types.GetTx
 func (h *ChainHelper) GetTx(hash types.Hash) (*types.Tx, error) {
 	return types.GetTx(hash, h.tblTx)
+}
+
+func SubscribeNewBlock() chan *events.Event {
+	return events.Subscribe("newtx")
 }
