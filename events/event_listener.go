@@ -41,6 +41,12 @@ func (el *EventListener) Push(title string, e *Event) {
 	el.mu.Unlock()
 }
 
+func (el *EventListener) PushBytes(title string, bytes []byte) {
+	e := new(Event)
+	e.SetBytes(bytes)
+	el.Push(title, e)
+}
+
 func SetEventListener(el *EventListener) {
 	gEventListener = el
 }
@@ -51,4 +57,8 @@ func Subscribe(title string) chan *Event {
 
 func Push(title string, e *Event) {
 	gEventListener.Push(title, e)
+}
+
+func PushBytes(title string, bytes []byte) {
+	gEventListener.PushBytes(title, bytes)
 }
