@@ -25,7 +25,7 @@ var obj = TestStruct{
 var jsn = `{"FirstField":15,"SecondField":"Beep-Bup"}`
 
 func TestToJson(t *testing.T) {
-  j := ToJson(obj)
+  j, _ := ToJson(obj)
 
   if !equals(j, []byte(jsn)) {
     t.Fatalf("ToJson incorrect, got: %s, want: %s", string(j), jsn)
