@@ -13,13 +13,13 @@ import (
 )
 
 // ToJson attempts to convert transferred structure to the json
-func ToJson(o interface{}) []byte {
+func ToJson(o interface{}) ([]byte, error) {
 	b, err := json.Marshal(o)
 
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return b
+	return b, nil
 }
 
 // FromJson attempts to convert json to the transferred structure
