@@ -11,15 +11,24 @@ package snapshot
 import (
 	"sync"
 	"time"
+
+	"github.com/BTWhite/go-btw-photon/types"
+
+	"github.com/BTWhite/go-btw-photon/db/leveldb"
+
+	"github.com/BTWhite/go-btw-photon/account"
+	"github.com/BTWhite/go-btw-photon/chain"
+	"github.com/BTWhite/go-btw-photon/events"
+	"github.com/BTWhite/go-btw-photon/logger"
 )
 
-var (
-	tickInterval = time.Second * 10
-)
+var lpf = "SSFactory:"
 
 // SnapShotFactory is releasing new snapshots for delegates.
 type SnapShotFactory struct {
 	sm       *SnapShotManager
+	am       *account.AccountManager
+	ch       *chain.ChainHelper
 	interval time.Duration
 	mu       sync.Mutex
 	running  bool
@@ -27,9 +36,13 @@ type SnapShotFactory struct {
 
 // NewSnapShotFactory creates new factory.
 // Please note that the factory needs a manager.
-func (sf *SnapShotFactory) NewSnapShotFactory(sm *SnapShotManager) *SnapShotFactory {
+func NewSnapShotFactory(sm *SnapShotManager,
+	am *account.AccountManager, ch *chain.ChainHelper, db *leveldb.Db) *SnapShotFactory {
+
 	return &SnapShotFactory{
 		sm: sm,
+		am: am,
+		ch: ch,
 	}
 }
 
@@ -41,7 +54,10 @@ func (sf *SnapShotFactory) Start() {
 		return
 	}
 	sf.running = true
-	go sf.cycle()
+
+	cTx := events.Subscribe("newtx")
+	go sf.cycle(cTx)
+	go sf.releaser()
 }
 
 // Start stopping the factory process.
@@ -51,13 +67,38 @@ func (sf *SnapShotFactory) Stop() {
 	sf.mu.Unlock()
 }
 
-func (sf *SnapShotFactory) cycle() {
-	for sf.running {
-		sf.tick()
-		time.Sleep(tickInterval)
+func (sf *SnapShotFactory) releaser() {
+	for true {
+		// TODO
+		time.Sleep(time.Second * 10)
+		ss, err := sf.sm.Release(types.NewKeyPair([]byte("HelloSubject")))
+		if err != nil {
+			logger.Err(lpf, err.Error())
+			continue
+		}
+
+		logger.Info(lpf, "Produced new snapshot:", ss.Id, "h:", ss.Height)
 	}
 }
 
-func (sf *SnapShotFactory) tick() {
-	// todo
+func (sf *SnapShotFactory) cycle(cTx chan *events.Event) {
+	for sf.running {
+		txE := <-cTx
+		hash := txE.GetBytes()
+		tx, err := sf.ch.GetTx(hash)
+		if err != nil {
+			logger.Err(err.Error())
+			continue
+		}
+		accR := sf.am.Get(tx.RecipientId)
+		accS := sf.am.Get(tx.SenderId)
+
+		sf.sm.AddBalance(BalanceByAccount(accR))
+		sf.sm.AddBalance(BalanceByAccount(accS))
+		err = sf.sm.Commit()
+		if err != nil {
+			logger.Err(lpf, err.Error())
+		}
+		logger.Debug(lpf, "Add balances:", accR.Address, "->", accR.Balance, "and", accS.Address, "->", accS.Balance)
+	}
 }

@@ -8,9 +8,33 @@
 
 package snapshot
 
-import "github.com/BTWhite/go-btw-photon/types"
+import (
+	"bytes"
+	"encoding/binary"
+
+	"github.com/BTWhite/go-btw-photon/account"
+	"github.com/BTWhite/go-btw-photon/types"
+)
 
 type Balance struct {
-	Address types.Hash
-	Balance types.Coin
+	Address types.Hash `json:"addr"`
+	Balance types.Coin `json:"blnc"`
+}
+
+func BalanceByAccount(acc *account.Account) Balance {
+	return Balance{
+		Address: acc.Address,
+		Balance: acc.Balance,
+	}
+}
+
+func (b Balance) GetBytes() []byte {
+	buff := new(bytes.Buffer)
+
+	binary.Write(buff, binary.LittleEndian, b.Balance)
+	if b.Address != nil {
+		b.Address.WriteToBuff(buff, 0)
+	}
+
+	return buff.Bytes()
 }

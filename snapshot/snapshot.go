@@ -20,6 +20,7 @@ import (
 //
 // It is the only synchronous chain that must be synchronized with all network members.
 type SnapShot struct {
+	Version            uint         `json:"version"`
 	Id                 types.Hash   `json:"id"`
 	Height             uint32       `json:"height"`
 	PreviousSnapShot   types.Hash   `json:"previousSnapShot"`
@@ -28,6 +29,7 @@ type SnapShot struct {
 	Balances           []Balance    `json:"balances"`
 	Timestamp          int64        `json:"timestamp"`
 	Signatures         []Signature  `json:"signaturess"`
+	Signature          types.Hash   `json:"signature"`
 }
 
 // AddVote supplements the unissued vote for further release.
@@ -52,6 +54,10 @@ func (s *SnapShot) GetBytes() []byte {
 
 	for _, vote := range s.Votes {
 		buff.Write(vote.GetBytes())
+	}
+
+	for _, balance := range s.Balances {
+		buff.Write(balance.GetBytes())
 	}
 
 	return buff.Bytes()
