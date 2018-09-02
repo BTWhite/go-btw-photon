@@ -17,6 +17,16 @@ import (
 	"github.com/BTWhite/go-btw-photon/snapshot"
 )
 
+// Configer is a network configuration view.
+type Configer interface {
+	SnapShotManager() *snapshot.SnapShotManager
+	AccountManager() *account.AccountManager
+	ChainHelper() *chain.ChainHelper
+	SnapShotFactory() *snapshot.SnapShotFactory
+	Magic() []byte
+	Version() Version
+}
+
 // Config combines the database, version and magic value of the network.
 // It can also store the Accounts, Chains and Snapshots Managers.
 type Config struct {
