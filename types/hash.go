@@ -88,6 +88,9 @@ func (h Hash) WriteToBuff(buff *bytes.Buffer, defaultSize int) error {
 
 		buff.Write(make([]byte, defaultSize))
 	} else {
+		if defaultSize == 0 {
+			defaultSize = len(h)
+		}
 		tmp := make([]byte, defaultSize*2)
 		_, err := hex.Decode(tmp, h)
 		if err != nil {
