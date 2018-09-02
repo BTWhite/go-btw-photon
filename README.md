@@ -3,8 +3,17 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 )](https://godoc.org/github.com/BTWhite/go-btw-photon)
 [![Go Report Card](https://goreportcard.com/badge/github.com/BTWhite/go-btw-photon?1)](https://goreportcard.com/report/github.com/BTWhite/go-btw-photon)
 
-# BitWhite Photon
-BitWhite is an efficient, flexible, and safe decentralized application platform designed to provide effortless development of decentralized applications. The root implementation was written in JavaScript. But in the future we plan to launch BTW on Golang and leave JS as an additional implementation.
+### Photon
+Photon - is a new Protocol based on asynchronous graphs, designed to solve problems with scalability and speed reduction of transactions.
+
+The Protocol allows ordinary clients not to synchronize the entire blockchain, but only their history connected directly to their account and history, which leads to evidence of the legality of transactions that change the balance of the sender. This way we achieve a linear transaction rate when chains are filled with their owners.
+
+Thanks to the branching of the network, we are able to get rid of blocks, replacing them with snapshots.
+Snapshot - a snapshot of the network every 10 minutes, unlike blocks, they do not store information about transactions, but only record the balances of accounts at the moment. Thus, we do not care how many transactions the sender will make during this time, because as a result only the final balance will be in the picture. But despite the asynchronous operation of transactions, each member of the network is obliged to synchronize the snapshots, supplemented with information about voting for delegates and freezing wallets Validators.
+
+In order for the chain it was impossible to change the Protocol received delegates and validators for synchronization of the history of each chain. Despite the fact that the transaction is considered to be fully confirmed after the recording of delegates, you can consider it confirmed instantly, as to make a transfer, the sender must find several validators who will freeze the money from their personal accounts in advance and in case of fraud, the Protocol will reimburse the loss to the victim by taking the required amount from the validators. 
+
+To become a validator and split the сommission between yourself and the delegates enough to freeze the wallet to certain snapshot and then start the node with a special key. But keep in mind that freezing your coins will require a standard fee for any transaction and you must have some capital in order to be more popular, because the more the transfer amount the more you need to find validators' reserve coins.
 
 A photon is a new era for our community. We plan to fundamentally change the protocol in order for the network to expand the transaction speed as the number of nodes increases and also change the programming language to GO.
 
