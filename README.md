@@ -3,6 +3,9 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 )](https://godoc.org/github.com/BTWhite/go-btw-photon)
 [![Go Report Card](https://goreportcard.com/badge/github.com/BTWhite/go-btw-photon?1)](https://goreportcard.com/report/github.com/BTWhite/go-btw-photon)
 
+# BitWhite Photon
+BitWhite is an efficient, flexible, and safe decentralized application platform designed to provide effortless development of decentralized applications. The root implementation was written in JavaScript. But in the future we plan to launch BTW on Golang and leave JS as an additional implementation.
+
 ### Photon
 Photon - is a new Protocol based on asynchronous graphs, designed to solve problems with scalability and speed reduction of transactions.
 
