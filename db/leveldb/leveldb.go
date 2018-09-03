@@ -66,7 +66,7 @@ func (db *Db) GetObject(key []byte, obj interface{}) error {
 		return err
 	}
 
-	return decode(tmp, obj)
+	return Decode(tmp, obj)
 }
 
 func (db *Db) Delete(key []byte) error {

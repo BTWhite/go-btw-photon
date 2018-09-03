@@ -13,7 +13,7 @@ import (
 	"encoding/gob"
 )
 
-func decode(data []byte, obj interface{}) error {
+func Decode(data []byte, obj interface{}) error {
 	var b bytes.Buffer
 	b.Write(data)
 	d := gob.NewDecoder(&b)
