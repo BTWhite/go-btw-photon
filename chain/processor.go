@@ -51,7 +51,11 @@ func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 	recipient.Balance = types.NewCoin(recipient.Balance.Uint64() + tx.Amount.Uint64())
 
 	// TODO fee to delegates.
-	sender := p.am.GetByPublicKey(types.NewPublicKeyByHex(tx.SenderPublicKey.String()))
+	senderPub := types.NewPublicKeyByHex(tx.SenderPublicKey.String())
+	sender := p.am.GetByPublicKey(senderPub)
+	if senderPub.Address() == tx.SenderId.String() {
+		sender.PublicKey = senderPub
+	}
 	balance := sender.Balance.Uint64() - (tx.Amount.Uint64() + tx.Fee.Uint64())
 	sender.Balance = types.NewCoin(balance)
 
