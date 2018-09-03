@@ -10,6 +10,7 @@ package snapshot
 
 import "github.com/BTWhite/go-btw-photon/types"
 
+// Signature is type for compare signature and publickey for multisigns.
 type Signature struct {
 	PublicKey types.Hash
 	Signature types.Hash

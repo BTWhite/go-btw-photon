@@ -27,7 +27,7 @@ func (t *Tbl) Put(key []byte, value []byte) error {
 	return t.db.Put(prefix(t.prefix, key), value)
 }
 
-// Put puts object to the table.
+// PutObject puts object to the table.
 func (t *Tbl) PutObject(key []byte, obj interface{}) error {
 
 	return t.db.PutObject(prefix(t.prefix, key), obj)
@@ -38,13 +38,13 @@ func (t *Tbl) Get(key []byte) ([]byte, error) {
 	return t.db.Get(prefix(t.prefix, key))
 }
 
-// Get gets object from the table.
+// GetObject gets object from the table.
 func (t *Tbl) GetObject(key []byte, obj interface{}) error {
 
 	return t.db.GetObject(prefix(t.prefix, key), obj)
 }
 
-// Hash checks the presence of an element in the table.
+// Has checks the presence of an element in the table.
 func (t *Tbl) Has(key []byte) (bool, error) {
 
 	return t.db.Has(prefix(t.prefix, key))

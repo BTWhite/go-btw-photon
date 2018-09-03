@@ -19,11 +19,22 @@ import (
 
 // Configer is a network configuration view.
 type Configer interface {
+	// SnapShotManager is getter for SnapShotManager.
 	SnapShotManager() *snapshot.SnapShotManager
+
+	// AccountManager is getter for AccountManager.
 	AccountManager() *account.AccountManager
+
+	// ChainHelper is getter for ChainHelper.
 	ChainHelper() *chain.ChainHelper
+
+	// SnapShotFactory is getter for SnapShotFactory.
 	SnapShotFactory() *snapshot.SnapShotFactory
+
+	//  Magic is getter for magic value of the network.
 	Magic() []byte
+
+	// Version is getter for Version instance.
 	Version() Version
 }
 

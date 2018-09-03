@@ -64,6 +64,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+// Start starts http server.
 func Start(port int) error {
 	http.HandleFunc("/jsonrpc/", handler)
 	logger.Debug(lp, "Listen on", port, "port")

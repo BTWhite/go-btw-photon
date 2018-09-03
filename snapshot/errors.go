@@ -13,5 +13,6 @@ import (
 )
 
 var (
+	// ErrSSnotFound returned is snapshot not found.
 	ErrSSNotFound = errors.New("SnapShot not found")
 )
