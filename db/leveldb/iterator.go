@@ -13,10 +13,12 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
+// NewIterator creates new iterator instance.
 func (db *Db) NewIterator() iterator.Iterator {
 	return db.core.NewIterator(nil, nil)
 }
 
+// NewIteratorPrefix creates new iterator instance with prefix.
 func (db *Db) NewIteratorPrefix(prefix []byte) iterator.Iterator {
 	return db.core.NewIterator(util.BytesPrefix(prefix), nil)
 }
