@@ -81,19 +81,19 @@ func (preq *PostTxRequest) Execute(id int32) *Response {
 	}
 
 	kp := types.NewKeyPair([]byte(preq.Secret))
-	tx, err := cf.ChainHelper().NewTx(kp, types.Coin(preq.Amount),
+	tx, e := cf.ChainHelper().NewTx(kp, types.Coin(preq.Amount),
 		types.Coin(10000000), []byte(preq.Address))
 
-	if err != nil {
-		logger.Err(lp, err.Error())
+	if e != nil {
+		logger.Err(lp, e.Error())
 		return response(nil, ErrInternalError)
 	}
 
-	err = cf.ChainHelper().ProcessTx(tx)
+	e = cf.ChainHelper().ProcessTx(tx)
 
-	if err != nil {
-		logger.Err(lp, err.Error())
-		return response(nil, ErrInternalError)
+	if e != nil {
+		logger.Err(lp, e.Error())
+		return response(nil, err(0, e.Error()))
 	}
 
 	return response(tx.Id.String(), nil)
