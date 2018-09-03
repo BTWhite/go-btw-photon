@@ -10,16 +10,21 @@ package events
 
 import "sync"
 
+// Eventer is interface that defines an object that can be perceived as an event.
 type Eventer interface {
+	// GetBytes gets bytes from the event.
 	GetBytes() []byte
+	// SetBytes sets bytes to the event.
 	SetBytes([]byte) int
 }
 
+// Event is default event implementation.
 type Event struct {
 	mu sync.Mutex
 	b  []byte
 }
 
+// SetBytes sets bytes to the event.
 func (e *Event) SetBytes(bytes []byte) int {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -28,6 +33,7 @@ func (e *Event) SetBytes(bytes []byte) int {
 	return len(e.b)
 }
 
+// GetBytes gets bytes from the event.
 func (e *Event) GetBytes() []byte {
 	return e.b
 }
