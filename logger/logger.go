@@ -10,6 +10,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -24,6 +25,7 @@ const (
 )
 
 var logLevel = logDebug
+var f, _ = os.OpenFile("debug.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
 // Init initializes a logger with the required type.
 func Init(level string) {
@@ -71,7 +73,11 @@ func Fatal(text ...interface{}) {
 }
 
 func print(prefix interface{}, text ...interface{}) {
+	tm := time.Now().Format("2006-01-02 15:04:05 ")
 
-	fmt.Print(fmt.Sprintf("%s%s%s %s%s ", styleYellow, prefix, styleGray, time.Now().Format("2006-01-02 15:04:05"), styleReset))
+	f.WriteString(tm)
+	f.WriteString(fmt.Sprintln(text...))
+
+	fmt.Print(fmt.Sprintf("%s%s%s %s%s ", styleYellow, prefix, styleGray, tm, styleReset))
 	fmt.Println(text...)
 }
