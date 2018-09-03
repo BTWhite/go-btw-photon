@@ -14,137 +14,35 @@
 package main
 
 import (
-	"crypto/rand"
-	"fmt"
-	"time"
+	"flag"
+
+	"github.com/BTWhite/go-btw-photon/rpc"
 
 	"github.com/BTWhite/go-btw-photon/chain"
+	"github.com/BTWhite/go-btw-photon/config"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
-	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
-	"github.com/BTWhite/go-btw-photon/snapshot"
-	"github.com/BTWhite/go-btw-photon/types"
+	"github.com/BTWhite/go-btw-photon/rpc/net/http"
 )
 
 func main() {
 	logger.Init("debug")
-	logger.Debug("BitWhite Node starting...")
+
+	port := flag.Int("http-port", 8886, "http json rpc port")
+	magic := flag.String("magic", "b1m52ot80x", "magic value")
+	delegate := flag.String("delegate", "none", "delegate secret")
+	genesis := flag.String("genesis", "genesis.json", "genesis file")
+	flag.Parse()
+
 	db := leveldb.Open("data/")
+	cf := config.NewConfig(db, []byte(*magic), [3]byte{0, 1, 0})
 
-	snapshot.NewSnapShotManager(db)
-	h := chain.NewChainHelper(db)
-
-	err := chain.LoadGenesis("genesis.json", h)
-	if err != nil {
-		logger.Debug(err.Error())
+	if *delegate != "none" {
+		cf.SnapShotFactory().Start()
 	}
 
-	for true {
-		var tmp string
-		fmt.Print("> ")
-		fmt.Scanf("%s", &tmp)
+	chain.LoadGenesis(*genesis, cf.ChainHelper())
+	rpc.SetConfig(cf)
 
-		switch tmp {
-		case "tx":
-			createTx(h)
-		case "gettx":
-			getTx(h)
-		case "balance":
-			getBalance(h)
-		case "chain":
-			getChain(h)
-		}
-	}
-}
-
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func GenerateRandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
-func getChain(h *chain.ChainHelper) {
-	var tmp string
-	fmt.Print("Chain: ")
-	fmt.Scanf("%s", &tmp)
-
-	ch, err := h.GetChainById([]byte(tmp))
-
-	if err != nil {
-		logger.Err(err.Error())
-		return
-	}
-
-	logger.Info(string(json.ToJson(ch)))
-}
-
-func getTx(h *chain.ChainHelper) {
-	var tmp string
-	fmt.Print("Tx: ")
-	fmt.Scanf("%s", &tmp)
-
-	tx, err := h.GetTx([]byte(tmp))
-
-	if err != nil {
-		logger.Err(err.Error())
-		return
-	}
-
-	logger.Info(string(json.ToJson(tx)))
-}
-
-func createTx(h *chain.ChainHelper) {
-	var tmp string
-	var tmpI uint64
-	fmt.Print("Secret: ")
-	fmt.Scanf("%s", &tmp)
-	am := h.AccountManager()
-
-	kp := types.NewKeyPair([]byte(tmp))
-	fmt.Println("Address:", kp.Public().Address(), "| Balance:",
-		am.Get([]byte(kp.Public().Address())).Balance)
-
-	fmt.Print("To: ")
-	fmt.Scanf("%s", &tmp)
-	for !types.HasAddr([]byte(tmp)) {
-		fmt.Print("Write correct address: ")
-		fmt.Scanf("%s", &tmp)
-	}
-
-	fmt.Println("To address:", tmp, "| Balance:", am.Get([]byte(tmp)).Balance)
-
-	fmt.Print("Amount: ")
-	fmt.Scanf("%d", &tmpI)
-
-	tx, err := h.NewTx(kp, types.Coin(tmpI), types.Coin(10000000), []byte(tmp))
-	if err != nil {
-		logger.Err(err.Error())
-		return
-	}
-
-	err = h.ProcessTx(tx)
-
-	if err != nil {
-		logger.Err(err.Error())
-	}
-}
-
-func getBalance(h *chain.ChainHelper) {
-	var tmp string
-	fmt.Print("Address: ")
-	fmt.Scanf("%s", &tmp)
-	am := h.AccountManager()
-
-	acc := am.Get([]byte(tmp))
-
-	logger.Info(acc.Address, acc.Balance)
+	http.Start(*port)
 }
