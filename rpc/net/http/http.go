@@ -64,8 +64,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-func Start(port uint16) error {
+func Start(port int) error {
 	http.HandleFunc("/jsonrpc/", handler)
-	logger.Info("Listen server on", port, "port")
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	logger.Debug(lp, "Listen on", port, "port")
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+
+	if err != nil {
+		logger.Err(lp, err.Error())
+		return err
+
+	}
+
+	return nil
 }
