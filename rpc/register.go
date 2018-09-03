@@ -13,17 +13,21 @@ import (
 	"github.com/BTWhite/go-btw-photon/logger"
 )
 
+// Executer at its core the request object that consists of the necessary fields.
 type Executer interface {
 	Execute(id int32) *Response
 }
 
 var data = make(map[string]Executer)
 
+// Register a registers a new method.
 func Register(name string, request Executer) {
 	data[name] = request
 	logger.Debug(lp, "Registered", name, "method")
 }
 
+// ExecuteRequest executes RPC request and returns a response if the method is
+// not valid anyway, the response will return with the corresponding error.
 func ExecuteRequest(request *Request, args *Args) *Response {
 	method, exist := data[request.Method]
 
@@ -44,6 +48,7 @@ func ExecuteRequest(request *Request, args *Args) *Response {
 	return resp
 }
 
+// Response returns the answer and makes it easy to create answers.
 func (req *Request) Response(result interface{}, err Error) *Response {
 	return &Response{
 		Id:     req.Id,

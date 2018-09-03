@@ -13,30 +13,37 @@ import "github.com/BTWhite/go-btw-photon/config"
 var lp = "RPC:"
 var cf *config.Config
 
+// Request is the basic structure for JSON RPC requests.
 type Request struct {
 	Id     int32       `json:"id"`
 	Method string      `json:"method"`
 	Params interface{} `json:"params,omitempty"`
 }
 
+// Response is the basic structure for JSON RPC responses.
 type Response struct {
 	Id     int32       `json:"id"`
 	Error  Error       `json:"error,omitempty"`
 	Result interface{} `json:"result,omitempty"`
 }
 
+// Args is necessary at the stage of receiving json, because to determine the
+// necessary parameters, you first need to know what method should be called.
 type Args []byte
 
-// UnmarshalJSON required for deserialization and correction of standard byte processing in GO.
+// UnmarshalJSON allows you to put json "as is" in text form, then deserialize
+// as soon as the method is known.
 func (a *Args) UnmarshalJSON(b []byte) error {
 	*a = b
 	return nil
 }
 
+// Bytes return bytes array.
 func (a *Args) Bytes() []byte {
 	return *a
 }
 
+// SetConfig must be called before any methods are executed.
 func SetConfig(config *config.Config) {
 	cf = config
 }

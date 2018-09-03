@@ -8,6 +8,7 @@
 
 package rpc
 
+// PingRequest is a small way to check if the node is responding.
 type PingRequest string
 
 func init() {
