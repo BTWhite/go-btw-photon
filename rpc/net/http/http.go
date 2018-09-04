@@ -9,6 +9,7 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -76,5 +77,27 @@ func Start(port int) error {
 
 	}
 
+	return nil
+}
+
+func Send(addr string, request rpc.Request) *rpc.Response {
+	buff := new(bytes.Buffer)
+	j, _ := json.ToJson(request)
+	buff.Write(j)
+
+	response, err := http.Post(fmt.Sprintf("http://%s/jsonrpc/", addr), "javascript/json", buff)
+	if err != nil {
+		logger.Err(lp, err.Error())
+		return nil
+	}
+
+	b, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		logger.Err(lp, err.Error())
+		return nil
+	}
+
+	logger.Info(string(b))
 	return nil
 }
