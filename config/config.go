@@ -14,6 +14,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/account"
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/snapshot"
 )
 
@@ -47,6 +48,7 @@ type Config struct {
 	ch      *chain.ChainHelper
 	sm      *snapshot.SnapShotManager
 	sf      *snapshot.SnapShotFactory
+	pm      *peer.PeerManager
 	magic   []byte
 	version Version
 }
@@ -86,6 +88,15 @@ func (c *Config) ChainHelper() *chain.ChainHelper {
 	}
 
 	return c.ch
+}
+
+// PeerManager is getter for PeerManager, creates default if manager nil.
+func (c *Config) PeerManager() *peer.PeerManager {
+	if c.pm == nil {
+		c.pm = peer.NewPeerManager(c.db)
+	}
+
+	return c.pm
 }
 
 // SnapShotFactory is getter for SnapShotFactory, creates default if factory nil.
