@@ -32,6 +32,7 @@ type SnapShotFactory struct {
 	interval time.Duration
 	mu       sync.Mutex
 	running  bool
+	delegate *types.KeyPair
 }
 
 // NewSnapShotFactory creates new factory.
@@ -44,6 +45,13 @@ func NewSnapShotFactory(sm *SnapShotManager,
 		am: am,
 		ch: ch,
 	}
+}
+
+// SetDelegate sets delegate account for release new snapshots.
+func (sf *SnapShotFactory) SetDelegate(kp *types.KeyPair) {
+	sf.mu.Lock()
+	sf.delegate = kp
+	sf.mu.Unlock()
 }
 
 // Start starting the factory process.
@@ -71,7 +79,10 @@ func (sf *SnapShotFactory) releaser() {
 	for true {
 		// TODO
 		time.Sleep(time.Second * 10)
-		ss, err := sf.sm.Release(types.NewKeyPair([]byte("HelloSubject")))
+		sf.mu.Lock()
+		delegate := sf.delegate
+		sf.mu.Unlock()
+		ss, err := sf.sm.Release(delegate)
 		if err != nil {
 			logger.Err(lpf, err.Error())
 			continue
