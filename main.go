@@ -15,34 +15,50 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 
-	"github.com/BTWhite/go-btw-photon/rpc"
-
-	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/config"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
-	"github.com/BTWhite/go-btw-photon/rpc/net/http"
+	"github.com/BTWhite/go-btw-photon/node"
 )
 
 func main() {
-	logger.Init("debug")
 
-	port := flag.Int("http-port", 8886, "http json rpc port")
-	magic := flag.String("magic", "b1m52ot80x", "magic value")
-	delegate := flag.String("delegate", "none", "delegate secret")
-	genesis := flag.String("genesis", "genesis.json", "genesis file")
+	c := initParams()
+
+	port := flag.Int("http-port", c.Port, "http json rpc port")
+	magic := flag.String("magic", c.Magic, "magic value")
+	delegate := flag.String("delegate", c.Delegate, "delegate secret")
+	genesis := flag.String("genesis", c.Genesis, "genesis file")
+	logLevel := flag.String("log", c.LogLevel, "log level (debug|error|info)")
+
 	flag.Parse()
 
-	db := leveldb.Open("data/")
-	cf := config.NewConfig(db, []byte(*magic), [3]byte{0, 1, 0})
+	c.Port = *port
+	c.Magic = *magic
+	c.Delegate = *delegate
+	c.Genesis = *genesis
+	c.LogLevel = *logLevel
 
-	if *delegate != "none" {
-		cf.SnapShotFactory().Start()
+	db := leveldb.Open("data/")
+	cf := config.NewConfig(db, []byte(c.Magic), [3]byte{0, 1, 0})
+
+	node.StartNode(cf, c)
+}
+
+func initParams() node.Params {
+	c := node.Params{}
+
+	b, err := ioutil.ReadFile("config.json")
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	err = json.FromJson(b, &c)
+	if err != nil {
+		logger.Fatal(err.Error())
 	}
 
-	chain.LoadGenesis(*genesis, cf.ChainHelper())
-	rpc.SetConfig(cf)
-
-	http.Start(*port)
+	return c
 }
