@@ -24,4 +24,11 @@ It is difficult to find a language that would be both fast and simple enough for
 
 
 ## Contribution
-You can also participate in writing go-btw, for this you need to get acquainted with the main [repository](https://github.com/BTWhite/BTWChain) and create their own pull requests. To achieve consensus, do not forget to make commits in a separate branch from the master. We will be happy if someone from the community will participate in the development.
+You can also participate in writing go-btw, for this you need to get acquainted with the main [repository](https://github.com/BTWhite/BTWChain) and create their own pull requests. We adhere to the [standards of Golang](https://golang.org/doc/effective_go.html) and therefore you need to read about 
+[formatting](https://golang.org/doc/effective_go.html#formatting) and [commentary](https://golang.org/doc/effective_go.html#commentary). We will be happy if someone from the community will participate in the development. 
+
+### Pull Request
+* Optionally, create a new branch in your fork, although this is not a mandatory requirement.
+* Change the `README.md` information about the interface changes if this is required.
+* In any commit add a prefix with the name of the changed packages. For example: `chain, types: Fix beep-boop bug`
+* Specify meaningful names of commits. Bad example: `chain: Update chain.go`
