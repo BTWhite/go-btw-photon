@@ -19,19 +19,8 @@ To become a validator and split the сommission between yourself and the delegat
 
 A Photon is a new era for our community. We plan to fundamentally change the Protocol in order for the network to expand the transaction speed as the number of nodes increases and also change the programming language to GO.
 
-### Why GO?
+## Why GO?
 It is difficult to find a language that would be both fast and simple enough for DAPP developers. Golang is the best option, because it runs tens of times faster than JavaScript and was developed by Google for its not very experienced programmers. Go is good not only with a rich set of built-in libraries, but also by imposing a single style and recommendations for good code, just read about gofmt.
-
-
-## Contribution
-You can also participate in writing go-btw, for this you need to get acquainted with the main [repository](https://github.com/BTWhite/BTWChain) and create their own pull requests. We adhere to the [standards of Golang](https://golang.org/doc/effective_go.html) and therefore you need to read about 
-[formatting](https://golang.org/doc/effective_go.html#formatting) and [commentary](https://golang.org/doc/effective_go.html#commentary). We will be happy if someone from the community will participate in the development. 
-
-### Pull Request
-* Optionally, create a new branch in your fork, although this is not a mandatory requirement.
-* Change the `README.md` information about the interface changes if this is required.
-* In any commit add a prefix with the name of the changed packages. For example: `chain, types: Fix beep-boop bug`
-* Specify meaningful names of commits. Bad example: `chain: Update chain.go`
 
 ## JSON RPC
 When you start the node, you start the http server (by default `8080` port), you can send `RPC` requests using `HTTP POST`. To do this, send a special object by `http://localhost:8080/jsonrpc/` (or your any `IP` and `port`).
@@ -62,3 +51,14 @@ In the event of an error, instead of the result field, the error field returns:
 }
 ```
 A full list of methods will appear later, but for now you can test the platform using the methods that you will see when you start the nodes
+
+## Contribution
+You can also participate in writing go-btw, for this you need to get acquainted with the main [repository](https://github.com/BTWhite/BTWChain) and create their own pull requests. We adhere to the [standards of Golang](https://golang.org/doc/effective_go.html) and therefore you need to read about 
+[formatting](https://golang.org/doc/effective_go.html#formatting) and [commentary](https://golang.org/doc/effective_go.html#commentary). We will be happy if someone from the community will participate in the development. 
+
+### Pull Request
+* Optionally, create a new branch in your fork, although this is not a mandatory requirement.
+* Change the `README.md` information about the interface changes if this is required.
+* In any commit add a prefix with the name of the changed packages. For example: `chain, types: Fix beep-boop bug`
+* Specify meaningful names of commits. Bad example: `chain: Update chain.go`
+
