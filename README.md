@@ -32,3 +32,33 @@ You can also participate in writing go-btw, for this you need to get acquainted 
 * Change the `README.md` information about the interface changes if this is required.
 * In any commit add a prefix with the name of the changed packages. For example: `chain, types: Fix beep-boop bug`
 * Specify meaningful names of commits. Bad example: `chain: Update chain.go`
+
+## JSON RPC
+When you start the node, you start the http server (by default `8080` port), you can send `RPC` requests using `HTTP POST`. To do this, send a special object by `http://localhost:8080/jsonrpc/` (or your any `IP` and `port`).
+
+Ping request:
+```json
+{
+  "id": 3,
+  "method": "ping",
+  "params": "beep"
+}
+```
+Ping response:
+```json
+{
+  "id": 3,
+  "result": "bup"
+}
+```
+In the event of an error, instead of the result field, the error field returns:
+```json
+{
+  "id": 3,
+  "error":{
+    "code": 0,
+    "message": "what is beep? :/"
+  }
+}
+```
+A full list of methods will appear later, but for now you can test the platform using the methods that you will see when you start the nodes
