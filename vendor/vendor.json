@@ -3,10 +3,28 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "2IsALKksTZFcjs3sU8nYvB9L6OE=",
+			"path": "github.com/fatih/color",
+			"revision": "2d684516a8861da43017284349b7e303e809ac21",
+			"revisionTime": "2018-05-16T10:03:07Z"
+		},
+		{
 			"checksumSHA1": "iDAyJMnswBRktzVlZSg7qdI5+A8=",
 			"path": "github.com/golang/snappy",
 			"revision": "2e65f85255dbc3072edf28d6b5b8efc472979f5a",
 			"revisionTime": "2018-05-18T05:39:59Z"
+		},
+		{
+			"checksumSHA1": "AtXpiR7Gtq5cF+6eUAH+LzupMts=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "efa589957cd060542a26d2dd7832fd6a6c6c3ade",
+			"revisionTime": "2018-03-10T13:32:14Z"
+		},
+		{
+			"checksumSHA1": "LkbotKu3JQxXEZZ9P40yhnFOycY=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "3fb116b820352b7f0c281308a4d6250c22d94e27",
+			"revisionTime": "2018-08-30T10:17:45Z"
 		},
 		{
 			"checksumSHA1": "wgV+OaVIH8IodzJ74AFpAZozVbg=",
@@ -103,6 +121,12 @@
 			"path": "golang.org/x/crypto/ripemd160",
 			"revision": "614d502a4dac94afa3a6ce146bd1736da82514c6",
 			"revisionTime": "2018-07-28T08:01:47Z"
+		},
+		{
+			"checksumSHA1": "/fyGSTHooK5Ez7G597cRNmI5/UM=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "ebe1bf3edb3325c393447059974de898d5133eb8",
+			"revisionTime": "2018-09-05T07:36:18Z"
 		}
 	],
 	"rootPath": "github.com/BTWhite/go-btw-photon"
