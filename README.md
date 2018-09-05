@@ -69,8 +69,7 @@ In the event of an error, instead of the result field, the error field returns:
   }
 }
 ```
-A full list of methods will appear later, but for now you can test the platform using the methods that you will see when you start the 
-nodes
+Get information on available methods in [RPC-METHODS.md](https://github.com/BTWhite/go-btw-photon/blob/master/docs/RPC-METHODS.md)
 
 ## Contribution
 You can also participate in writing go-btw, for this you need to get acquainted with the main 
