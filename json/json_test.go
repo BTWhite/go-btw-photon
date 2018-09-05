@@ -11,52 +11,52 @@ package json
 import "testing"
 
 type TestStruct struct {
-  FirstField         int
-  SecondBeepBupField string `json:"SecondField"`
-  hiddenField        int
+	FirstField         int
+	SecondBeepBupField string `json:"SecondField"`
+	hiddenField        int
 }
 
 var obj = TestStruct{
-  FirstField:         15,
-  SecondBeepBupField: "Beep-Bup",
-  hiddenField:        3,
+	FirstField:         15,
+	SecondBeepBupField: "Beep-Bup",
+	hiddenField:        3,
 }
 
 var jsn = `{"FirstField":15,"SecondField":"Beep-Bup"}`
 
 func TestToJson(t *testing.T) {
-  j, _ := ToJson(obj)
+	j, _ := ToJson(obj)
 
-  if !equals(j, []byte(jsn)) {
-    t.Fatalf("ToJson incorrect, got: %s, want: %s", string(j), jsn)
-  }
+	if !equals(j, []byte(jsn)) {
+		t.Fatalf("ToJson incorrect, got: %s, want: %s", string(j), jsn)
+	}
 }
 
 func TestFromJson(t *testing.T) {
-  o := TestStruct{}
-  err := FromJson([]byte(jsn), &o)
-  if err != nil {
-    t.Fatal(err.Error())
-  }
+	o := TestStruct{}
+	err := FromJson([]byte(jsn), &o)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
-  if o.FirstField != obj.FirstField ||
-    o.SecondBeepBupField != obj.SecondBeepBupField ||
-    o.hiddenField == obj.hiddenField {
+	if o.FirstField != obj.FirstField ||
+		o.SecondBeepBupField != obj.SecondBeepBupField ||
+		o.hiddenField == obj.hiddenField {
 
-    t.Fatal("FromJson incorrect, got:", o, "want:", obj)
-  }
+		t.Fatal("FromJson incorrect, got:", o, "want:", obj)
+	}
 }
 
 func equals(a []byte, b []byte) bool {
-  if len(a) != len(b) {
-    return false
-  }
+	if len(a) != len(b) {
+		return false
+	}
 
-  for i := 0; i < len(a); i++ {
-    if a[i] != b[i] {
-      return false
-    }
-  }
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
 
-  return true
+	return true
 }
