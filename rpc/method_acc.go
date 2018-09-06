@@ -25,7 +25,7 @@ type GetAccPubKeyRequest struct {
 	Secret string `json:"secret"`
 }
 
-func (preq *GetAccPubKeyRequest) Execute(id int32) *Response {
+func (preq *GetAccPubKeyRequest) execute(id int32) *Response {
 	if len(preq.Secret) < 3 {
 		return response(nil, err(0, "Please write correct `secret`"))
 	}
@@ -34,7 +34,7 @@ func (preq *GetAccPubKeyRequest) Execute(id int32) *Response {
 	return response(types.NewHash(*kp.Public()).ToHex(), nil)
 }
 
-func (preq *OpenAccRequest) Execute(id int32) *Response {
+func (preq *OpenAccRequest) execute(id int32) *Response {
 	if len(preq.PublicKey) < 3 {
 		return response(nil, err(0, "Please write correct `publicKey`"))
 	}

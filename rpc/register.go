@@ -15,7 +15,7 @@ import (
 
 // Executer at its core the request object that consists of the necessary fields.
 type Executer interface {
-	Execute(id int32) *Response
+	execute(id int32) *Response
 }
 
 var data = make(map[string]Executer)
@@ -43,7 +43,7 @@ func ExecuteRequest(request *Request, args *Args) *Response {
 		}
 	}
 
-	resp := method.Execute(request.Id)
+	resp := method.execute(request.Id)
 	resp.Id = request.Id
 	return resp
 }

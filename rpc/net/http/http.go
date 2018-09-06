@@ -13,8 +13,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 
 	"github.com/BTWhite/go-btw-photon/json"
+	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc"
 
 	"github.com/BTWhite/go-btw-photon/logger"
@@ -80,24 +82,58 @@ func Start(port int) error {
 	return nil
 }
 
-func Send(addr string, request rpc.Request) *rpc.Response {
+// Send sends a request to the specified address.
+func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
 	buff := new(bytes.Buffer)
 	j, _ := json.ToJson(request)
 	buff.Write(j)
-
-	response, err := http.Post(fmt.Sprintf("http://%s/jsonrpc/", addr), "javascript/json", buff)
-	if err != nil {
-		logger.Err(lp, err.Error())
-		return nil
+	resp := &rpc.Response{
+		Result: respArgs,
 	}
 
-	b, err := ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		logger.Err(lp, err.Error())
-		return nil
+	r, e := http.Post(addr, "javascript/json", buff)
+	if e != nil {
+		logger.Err(lp, e.Error())
+		return resp, e
 	}
 
-	logger.Info(string(b))
-	return nil
+	b, e := ioutil.ReadAll(r.Body)
+
+	if e != nil {
+		logger.Err(lp, e.Error())
+		return resp, e
+	}
+
+	e = json.FromJson(b, resp)
+
+	if e != nil {
+		return resp, e
+	}
+
+	return resp, nil
+}
+
+// BroadCast sends requests to the `count` random peers.
+func BroadCast(pm *peer.PeerManager, request rpc.Request, respArgs interface{}, count int) []*rpc.Response {
+	if count <= 0 {
+		count = 20
+	}
+	peers := pm.Random(count)
+	results := make([]*rpc.Response, len(peers))
+	//	for _, _ := range results {
+
+	//	}
+
+	wg := new(sync.WaitGroup)
+	for i, peer := range peers {
+		wg.Add(1)
+		go func(i int, respArgs interface{}) {
+			results[i], _ = Send(peer.HttpAddr(), request, &respArgs)
+
+			wg.Done()
+		}(i, respArgs)
+	}
+
+	wg.Wait()
+	return results
 }

@@ -7,22 +7,3 @@
 // but we do not give any warranty. For more information, refer to the GPLv3.
 
 package rpc
-
-import (
-	"fmt"
-)
-
-// PingRequest is a small way to check if the node is responding.
-type PingRequest string
-
-func init() {
-	Register("ping", new(PingRequest))
-
-}
-
-func (preq *PingRequest) execute(id int32) *Response {
-	if *preq != "beep" {
-		return response(nil, err(0, fmt.Sprintf("What is %s? :/", *preq)))
-	}
-	return response("boop", nil)
-}
