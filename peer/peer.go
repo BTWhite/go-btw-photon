@@ -27,6 +27,6 @@ func NewPeer(ip net.IP, port int) Peer {
 	}
 }
 
-func (p *Peer) HttpAddr() string {
+func (p Peer) HttpAddr() string {
 	return fmt.Sprintf("http://%s:%d/jsonrpc/", p.Ip.String(), p.Port)
 }
