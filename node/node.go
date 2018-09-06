@@ -15,6 +15,8 @@ import (
 	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc"
 	"github.com/BTWhite/go-btw-photon/rpc/net/http"
+	"github.com/BTWhite/go-btw-photon/sync"
+	"github.com/BTWhite/go-btw-photon/types"
 )
 
 type Params struct {
@@ -38,17 +40,34 @@ func StartNode(cf *config.Config, params Params) {
 	}
 
 	logger.Init(n.p.LogLevel)
-	chain.LoadGenesis(params.Genesis, cf.ChainHelper())
-
+	go n.rpc()
 	n.peers()
-	n.delegate()
-	n.rpc()
+	n.snapshots()
+	n.txs()
+
+	err := chain.LoadGenesis(params.Genesis, cf.ChainHelper())
+	if err != nil {
+		logger.Err(err)
+	}
 }
 
-func (n *node) delegate() {
+func (n *node) snapshots() {
 	if len(n.p.Delegate) > 0 {
-		n.cf.SnapShotFactory().Start()
+		sf := n.cf.SnapShotFactory()
+		sf.SetDelegate(types.NewKeyPair([]byte(n.p.Delegate)))
+		sf.Start()
 	}
+
+	s := &sync.SnapShotSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
+}
+
+func (n *node) txs() {
+
+	s := &sync.ChainSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
 }
 
 func (n *node) peers() {
