@@ -11,6 +11,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -22,9 +23,12 @@ const (
 	logErr   = 0x02
 )
 
-var logLevel = logDebug
-var f, _ = os.OpenFile("debug.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-var c = color.New(color.FgHiBlack).Add(color.BgHiYellow)
+var (
+	logLevel = logDebug
+	f, _     = os.OpenFile("debug.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	c        = color.New(color.FgHiBlack).Add(color.BgHiYellow)
+	mu       = new(sync.Mutex)
+)
 
 // Init initializes a logger with the required type.
 func Init(level string) {
@@ -74,6 +78,7 @@ func Fatal(text ...interface{}) {
 func print(prefix interface{}, text ...interface{}) {
 	tm := time.Now().Format("2006-01-02 15:04:05 ")
 
+	mu.Lock()
 	f.WriteString(tm)
 	f.WriteString(fmt.Sprintln(text...))
 
@@ -82,5 +87,5 @@ func print(prefix interface{}, text ...interface{}) {
 	c.Add(color.FgHiBlack)
 	fmt.Print(" ")
 	fmt.Println(text...)
-
+	mu.Unlock()
 }
