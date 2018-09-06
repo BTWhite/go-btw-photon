@@ -91,23 +91,6 @@ func (t *Tx) GenerateId() {
 	t.Id = hash
 }
 
-// Save writes a tx to the database.
-func (t *Tx) Save(tbl *leveldb.Tbl) (Hash, error) {
-	exist, err := tbl.Has(t.Id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if exist {
-		return t.Id, ErrTxAlreadyExist
-	}
-
-	err = tbl.PutObject(t.Id, t)
-
-	return t.Id, err
-}
-
 // GetTx tries to find a transaction in the entire network by its hash.
 func GetTx(hash Hash, tbl *leveldb.Tbl) (*Tx, error) {
 	exist, err := tbl.Has(hash)
