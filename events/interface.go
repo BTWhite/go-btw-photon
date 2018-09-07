@@ -8,14 +8,21 @@
 
 package events
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 // Eventer is interface that defines an object that can be perceived as an event.
 type Eventer interface {
 	// GetBytes gets bytes from the event.
 	GetBytes() []byte
+
 	// SetBytes sets bytes to the event.
 	SetBytes([]byte) int
+
+	// Get gets object
+	GetObject(obj interface{}) error
 }
 
 // Event is default event implementation.
@@ -36,4 +43,8 @@ func (e *Event) SetBytes(bytes []byte) int {
 // GetBytes gets bytes from the event.
 func (e *Event) GetBytes() []byte {
 	return e.b
+}
+
+func (e *Event) GetObject(obj interface{}) error {
+	return errors.New("not supported")
 }
