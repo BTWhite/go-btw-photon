@@ -124,6 +124,6 @@ func (h *ChainHelper) GetTx(hash types.Hash) (*types.Tx, error) {
 	return types.GetTx(hash, h.tblTx)
 }
 
-func SubscribeNewBlock() chan *events.Event {
+func SubscribeNewBlock() chan events.Eventer {
 	return events.Subscribe("newtx")
 }

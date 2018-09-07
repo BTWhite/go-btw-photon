@@ -39,4 +39,7 @@ var (
 
 	// ErrChainEmpty is returned is chain empty.
 	ErrChainEmpty = errors.New("Chain empty")
+
+	// ErrInsufficientData is returned if not found previous tx and sync needed.
+	ErrInsufficientData = errors.New("Insufficient data")
 )

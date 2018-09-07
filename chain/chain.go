@@ -92,10 +92,10 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // LastTx returns last tx hash in this chain.
 func (c *Chain) LastTx() types.Hash {
-	if len(c.Txs) > 0 {
-		return c.Txs[0]
+	if len(c.Txs) == 0 {
+		return nil
 	}
-	return nil
+	return c.Txs[len(c.Txs)-1]
 }
 
 // AddTx adds a new transaction to the chain.

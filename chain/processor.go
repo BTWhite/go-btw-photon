@@ -85,6 +85,12 @@ func (p *DefaultProcessor) Validate(tx *types.Tx, ch *Chain) error {
 	}
 
 	if !tx.PreviousTx.Equals(ch.LastTx()) {
+
+		_, err := ch.GetTx(tx.Id)
+
+		if err != nil {
+			return ErrInsufficientData
+		}
 		return ErrTxInvalidPrevTx
 	}
 
