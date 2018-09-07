@@ -84,6 +84,7 @@ func Start(port int) error {
 
 // Send sends a request to the specified address.
 func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
+	request.Peer = peer.LocalPeer()
 	buff := new(bytes.Buffer)
 	j, _ := json.ToJson(request)
 	buff.Write(j)
@@ -92,6 +93,7 @@ func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response
 	}
 
 	r, e := http.Post(addr, "javascript/json", buff)
+	logger.Info(string(j))
 	if e != nil {
 		logger.Err(lp, e.Error())
 		return resp, e

@@ -11,11 +11,12 @@ package rpc
 import (
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/peer"
 )
 
 // Executer at its core the request object that consists of the necessary fields.
 type Executer interface {
-	execute(id int32) *Response
+	execute(*Request) *Response
 }
 
 var data = make(map[string]Executer)
@@ -43,8 +44,12 @@ func ExecuteRequest(request *Request, args *Args) *Response {
 		}
 	}
 
-	resp := method.execute(request.Id)
+	resp := method.execute(request)
 	resp.Id = request.Id
+
+	if resp.Error != nil {
+		logger.Err(resp.Error)
+	}
 	return resp
 }
 
@@ -61,5 +66,6 @@ func response(result interface{}, err Error) *Response {
 	return &Response{
 		Result: result,
 		Error:  err,
+		Peer:   peer.LocalPeer(),
 	}
 }

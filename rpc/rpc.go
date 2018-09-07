@@ -8,7 +8,10 @@
 
 package rpc
 
-import "github.com/BTWhite/go-btw-photon/config"
+import (
+	"github.com/BTWhite/go-btw-photon/config"
+	"github.com/BTWhite/go-btw-photon/peer"
+)
 
 var lp = "RPC:"
 var cf *config.Config
@@ -18,6 +21,7 @@ type Request struct {
 	Id     int32       `json:"id"`
 	Method string      `json:"method"`
 	Params interface{} `json:"params,omitempty"`
+	Peer   *peer.Peer  `json:"peer,omitempty"`
 }
 
 // Response is the basic structure for JSON RPC responses.
@@ -25,6 +29,7 @@ type Response struct {
 	Id     int32       `json:"id"`
 	Error  Error       `json:"error,omitempty"`
 	Result interface{} `json:"result,omitempty"`
+	Peer   *peer.Peer  `json:"peer,omitempty"`
 }
 
 // Args is necessary at the stage of receiving json, because to determine the

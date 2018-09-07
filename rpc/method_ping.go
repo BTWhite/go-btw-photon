@@ -20,7 +20,7 @@ func init() {
 
 }
 
-func (preq *PingRequest) execute(id int32) *Response {
+func (preq *PingRequest) execute(r *Request) *Response {
 	if *preq != "beep" {
 		return response(nil, err(0, fmt.Sprintf("What is %s? :/", *preq)))
 	}

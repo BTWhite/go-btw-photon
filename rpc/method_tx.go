@@ -9,7 +9,9 @@
 package rpc
 
 import (
+	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/events"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/types"
 )
@@ -29,7 +31,7 @@ type GetTxRequest struct {
 	Id types.Hash `json:"id"`
 }
 
-func (preq *GetTxRequest) execute(id int32) *Response {
+func (preq *GetTxRequest) execute(r *Request) *Response {
 	tx, err := cf.ChainHelper().GetTx(preq.Id)
 	if err != nil {
 		if err == types.ErrTxNotFound {
@@ -45,7 +47,7 @@ type GetTxListRequest struct {
 	Limit int `json:"limit"`
 }
 
-func (preq *GetTxListRequest) execute(id int32) *Response {
+func (preq *GetTxListRequest) execute(r *Request) *Response {
 	it := cf.DataBase().NewIteratorPrefix([]byte("tx"))
 	var txs []*types.Tx
 
@@ -71,7 +73,7 @@ type CreateTxRequest struct {
 	Amount  uint64 `json:"amount"`
 }
 
-func (preq *CreateTxRequest) execute(id int32) *Response {
+func (preq *CreateTxRequest) execute(r *Request) *Response {
 	if len(preq.Secret) < 3 {
 		return response(nil, err(0, "Please write correct secret"))
 	}
@@ -103,10 +105,24 @@ type PostTxRequest struct {
 	types.Tx
 }
 
-func (preq *PostTxRequest) execute(id int32) *Response {
+func (preq *PostTxRequest) execute(r *Request) *Response {
 	e := cf.ChainHelper().ProcessTx(&preq.Tx)
 
 	if e != nil {
+		if e == chain.ErrInsufficientData && r.Peer != nil {
+			rq := Request{
+				Params: LoadChainRequest{
+					Chain: preq.Chain.String(),
+					Start: 0,
+					Limit: 20,
+				},
+				Peer: r.Peer,
+			}
+			e := &RequestEvent{}
+			e.SetRequest(&rq)
+			events.Push("insufficent_data_tx", e)
+		}
+
 		return response(nil, err(0, e.Error()))
 	}
 
