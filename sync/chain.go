@@ -26,18 +26,22 @@ import (
 var lpc = "Chain sync:"
 
 type ChainSyncer struct {
-	ch      *chain.ChainHelper
-	pm      *peer.PeerManager
-	mu      sync.Mutex
-	running bool
-	event   chan *events.Event
+	ch        *chain.ChainHelper
+	pm        *peer.PeerManager
+	mu        sync.Mutex
+	running   bool
+	eventTx   chan events.Eventer
+	eventData chan events.Eventer
 }
 
 func (s *ChainSyncer) Start() {
 	logger.Debug(lpc, "Starting...")
-	s.event = events.Subscribe("newtx")
+	s.eventTx = events.Subscribe("newtx")
+	s.eventData = events.Subscribe("insufficent_data_tx")
 	s.running = true
-	go s.cycle()
+
+	go s.cycleTx()
+	go s.cycleData()
 }
 
 func (s *ChainSyncer) Stop() {
@@ -49,9 +53,9 @@ func (s *ChainSyncer) SetConfig(cf *config.Config) {
 	s.pm = cf.PeerManager()
 }
 
-func (s *ChainSyncer) cycle() {
+func (s *ChainSyncer) cycleTx() {
 	for true {
-		txh := <-s.event
+		txh := <-s.eventTx
 		if !s.running {
 			break
 		}
@@ -62,6 +66,35 @@ func (s *ChainSyncer) cycle() {
 			continue
 		}
 		s.syncTx(tx)
+	}
+}
+
+func (s *ChainSyncer) cycleData() {
+	for true {
+		e := <-s.eventData
+		if !s.running {
+			break
+		}
+		re := &rpc.Request{}
+		e.GetObject(re)
+
+		if re.Peer != nil {
+			respArgs := rpc.LoadChainResponse{}
+			re.Method = "chain.load"
+			r, _ := http.Send(re.Peer.HttpAddr(), *re, &respArgs)
+			if r.Error != nil {
+				logger.Err(lpc, r.Error.Message)
+				continue
+			}
+
+			for _, tx := range respArgs.Txs {
+				err := s.ch.ProcessTx(tx)
+				if err != nil {
+					logger.Err(lpc, err.Error())
+					break
+				}
+			}
+		}
 	}
 }
 
