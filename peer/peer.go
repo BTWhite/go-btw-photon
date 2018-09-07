@@ -14,6 +14,7 @@ import (
 )
 
 var lp = "Peer:"
+var localPeer *Peer
 
 type Peer struct {
 	Ip   net.IP `json:"ip"`
@@ -25,6 +26,14 @@ func NewPeer(ip net.IP, port int) Peer {
 		Ip:   ip,
 		Port: port,
 	}
+}
+
+func LocalPeer() *Peer {
+	return localPeer
+}
+
+func SetLocalPeer(peer *Peer) {
+	localPeer = peer
 }
 
 func (p Peer) HttpAddr() string {

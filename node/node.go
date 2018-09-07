@@ -9,6 +9,8 @@
 package node
 
 import (
+	"net"
+
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/config"
 	"github.com/BTWhite/go-btw-photon/logger"
@@ -21,6 +23,7 @@ import (
 
 type Params struct {
 	Peers    []peer.Peer `json:"peers"`
+	Ip       net.IP      `json:"ip"`
 	Port     int         `json:"port"`
 	Genesis  string      `json:"genesis"`
 	Delegate string      `json:"delegate"`
@@ -38,6 +41,9 @@ func StartNode(cf *config.Config, params Params) {
 		cf: cf,
 		p:  params,
 	}
+
+	lp := peer.NewPeer(n.p.Ip, n.p.Port)
+	peer.SetLocalPeer(&lp)
 
 	logger.Init(n.p.LogLevel)
 	go n.rpc()
