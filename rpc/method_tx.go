@@ -110,17 +110,10 @@ func (preq *PostTxRequest) execute(r *Request) *Response {
 
 	if e != nil {
 		if e == chain.ErrInsufficientData && r.Peer != nil {
-			rq := Request{
-				Params: LoadChainRequest{
-					Chain: preq.Chain.String(),
-					Start: 0,
-					Limit: 20,
-				},
-				Peer: r.Peer,
-			}
-			e := &RequestEvent{}
-			e.SetRequest(&rq)
-			events.Push("insufficent_data_tx", e)
+
+			e := &InsufficientDataEvent{}
+			e.SetData(preq.Chain, preq.Id, r.Peer)
+			go events.Push("insufficent_data_tx", e)
 		}
 
 		return response(nil, err(0, e.Error()))

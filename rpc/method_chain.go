@@ -9,8 +9,9 @@
 package rpc
 
 import (
-	"github.com/BTWhite/go-btw-photon/json"
-	"github.com/BTWhite/go-btw-photon/logger"
+	"fmt"
+
+	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -34,15 +35,12 @@ func init() {
 func (preq *LoadChainRequest) execute(r *Request) *Response {
 	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Chain))
 
-	j, _ := json.ToJson(ch)
-	logger.Debug("chain", string(j))
-
 	if e != nil {
 		return response(nil, err(0, e.Error()))
 	}
 
-	if len(ch.Txs) > preq.Start {
-		return response(nil, err(0, "Start overflow"))
+	if len(ch.Txs) <= preq.Start {
+		return response(nil, err(0, fmt.Sprint("Start overflow, len:", len(ch.Txs))))
 	}
 
 	var result []*types.Tx
@@ -53,7 +51,7 @@ func (preq *LoadChainRequest) execute(r *Request) *Response {
 		}
 
 		tx, e := ch.GetTx(ch.Txs[item])
-		if e != nil {
+		if e != nil && e != chain.ErrTxNotFoundInChain {
 			return response(nil, err(0, e.Error()))
 		}
 

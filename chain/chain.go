@@ -136,7 +136,7 @@ func (c *Chain) GetTx(hash types.Hash) (*types.Tx, error) {
 	}
 
 	if !tx.Chain.Equals(c.Id) {
-		return nil, ErrTxNotFoundInChain
+		return tx, ErrTxNotFoundInChain
 	}
 
 	return tx, nil

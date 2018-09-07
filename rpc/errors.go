@@ -13,7 +13,7 @@ type Error interface {
 	Message() string
 }
 
-type defaultError struct {
+type DefaultError struct {
 	C int32  `json:"code"`
 	M string `json:"message"`
 }
@@ -40,13 +40,13 @@ var (
 )
 
 func err(code int32, message string) Error {
-	return &defaultError{code, message}
+	return &DefaultError{code, message}
 }
 
-func (e *defaultError) Code() int32 {
+func (e *DefaultError) Code() int32 {
 	return e.C
 }
 
-func (e *defaultError) Message() string {
+func (e *DefaultError) Message() string {
 	return e.M
 }

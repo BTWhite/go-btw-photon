@@ -84,16 +84,18 @@ func Start(port int) error {
 
 // Send sends a request to the specified address.
 func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
+	logger.Debug(lp, "Send", request.Method, "to", addr)
 	request.Peer = peer.LocalPeer()
 	buff := new(bytes.Buffer)
 	j, _ := json.ToJson(request)
 	buff.Write(j)
 	resp := &rpc.Response{
 		Result: respArgs,
+		Error:  &rpc.DefaultError{},
 	}
 
 	r, e := http.Post(addr, "javascript/json", buff)
-	logger.Info(string(j))
+
 	if e != nil {
 		logger.Err(lp, e.Error())
 		return resp, e
@@ -109,9 +111,13 @@ func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response
 	e = json.FromJson(b, resp)
 
 	if e != nil {
-		return resp, e
+		logger.Err(lp, e.Error(), string(b))
+		return nil, e
 	}
 
+	if resp.Error.Code() == 0 && len(resp.Error.Message()) == 0 {
+		resp.Error = nil
+	}
 	return resp, nil
 }
 
@@ -127,7 +133,11 @@ func BroadCast(pm *peer.PeerManager, request rpc.Request, respArgs interface{}, 
 	//	}
 
 	wg := new(sync.WaitGroup)
+	lp := peer.LocalPeer()
 	for i, peer := range peers {
+		if lp.Ip.Equal(peer.Ip) && lp.Port == peer.Port {
+			continue
+		}
 		wg.Add(1)
 		go func(i int, respArgs interface{}) {
 			results[i], _ = Send(peer.HttpAddr(), request, &respArgs)

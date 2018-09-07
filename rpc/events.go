@@ -8,24 +8,33 @@
 
 package rpc
 
-type RequestEvent struct {
-	r *Request
+import (
+	"github.com/BTWhite/go-btw-photon/peer"
+	"github.com/BTWhite/go-btw-photon/types"
+)
+
+type InsufficientDataEvent struct {
+	Chain types.Hash
+	To    types.Hash
+	Peer  *peer.Peer
 }
 
-func (e *RequestEvent) GetObject(obj interface{}) error {
-	re := obj.(*Request)
-	*re = *e.r
+func (e *InsufficientDataEvent) GetObject(obj interface{}) error {
+	ro := obj.(*InsufficientDataEvent)
+	*ro = *e
 	return nil
 }
 
-func (e *RequestEvent) SetRequest(r *Request) {
-	e.r = r
+func (e *InsufficientDataEvent) SetData(chain types.Hash, to types.Hash, peer *peer.Peer) {
+	e.Chain = chain
+	e.To = to
+	e.Peer = peer
 }
 
-func (e *RequestEvent) GetBytes() []byte {
+func (e *InsufficientDataEvent) GetBytes() []byte {
 	return nil
 }
 
-func (e *RequestEvent) SetBytes([]byte) int {
+func (e *InsufficientDataEvent) SetBytes([]byte) int {
 	return 0
 }

@@ -9,6 +9,7 @@
 package sync
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/BTWhite/go-btw-photon/rpc"
@@ -75,35 +76,76 @@ func (s *ChainSyncer) cycleData() {
 		if !s.running {
 			break
 		}
-		re := &rpc.Request{}
+		re := &rpc.InsufficientDataEvent{}
 		e.GetObject(re)
 
 		if re.Peer != nil {
-			respArgs := rpc.LoadChainResponse{}
-			re.Method = "chain.load"
-			r, _ := http.Send(re.Peer.HttpAddr(), *re, &respArgs)
-			if r.Error != nil {
-				logger.Err(lpc, r.Error.Message)
-				continue
-			}
 
-			for _, tx := range respArgs.Txs {
-				err := s.ch.ProcessTx(tx)
+			for i := 0; true; i++ {
+				end, err := s.loadChain(re.Peer.HttpAddr(), 20*i, 20, re.Chain, re.To)
 				if err != nil {
 					logger.Err(lpc, err.Error())
 					break
 				}
+
+				if end {
+					break
+				}
 			}
+
 		}
+
 	}
 }
 
-func (s *ChainSyncer) syncTx(tx *types.Tx) {
+func (s *ChainSyncer) loadChain(addr string, start int, limit int,
+	ch types.Hash, to types.Hash) (bool, error) {
+	re := rpc.Request{}
+	re.Method = "chain.load"
+	re.Params = rpc.LoadChainRequest{
+		Chain: ch.String(),
+		Start: start,
+		Limit: limit,
+	}
 
+	respArgs := rpc.LoadChainResponse{}
+
+	r, err := http.Send(addr, re, &respArgs)
+
+	if err != nil {
+		return false, err
+	}
+
+	if r.Error != nil {
+		return false, errors.New(r.Error.Message())
+	}
+
+	for _, tx := range respArgs.Txs {
+		s.mu.Lock()
+		err := s.ch.ProcessTx(tx)
+
+		if err != nil && err != chain.ErrTxAlreadyExist {
+			s.mu.Unlock()
+			return false, err
+		}
+
+		if tx.Id.Equals(to) {
+			s.mu.Unlock()
+			return true, nil
+		}
+		s.mu.Unlock()
+	}
+
+	return false, nil
+}
+
+func (s *ChainSyncer) syncTx(tx *types.Tx) {
+	s.mu.Lock()
 	r := rpc.Request{
 		Id:     0,
 		Method: "tx.post",
 		Params: tx,
 	}
 	http.BroadCast(s.pm, r, nil, 0)
+	s.mu.Unlock()
 }

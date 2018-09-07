@@ -110,7 +110,7 @@ func (h *ChainHelper) ProcessTx(tx *types.Tx) error {
 	err = rch.Save()
 	e := new(events.Event)
 	e.SetBytes(tx.Id)
-	events.Push("newtx", e)
+	go events.Push("newtx", e)
 	return err
 }
 
