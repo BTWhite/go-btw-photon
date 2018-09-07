@@ -33,6 +33,7 @@ func main() {
 	delegate := flag.String("delegate", c.Delegate, "delegate secret")
 	genesis := flag.String("genesis", c.Genesis, "genesis file")
 	logLevel := flag.String("log", c.LogLevel, "log level (debug|error|info)")
+	data := flag.String("data", "data", "database dir")
 
 	flag.Parse()
 
@@ -42,10 +43,12 @@ func main() {
 	c.Genesis = *genesis
 	c.LogLevel = *logLevel
 
-	db := leveldb.Open("data/")
+	db := leveldb.Open(*data)
 	cf := config.NewConfig(db, []byte(c.Magic), [3]byte{0, 1, 0})
 
-	node.StartNode(cf, c)
+	go node.StartNode(cf, c)
+
+	<-make(chan bool)
 }
 
 func initParams() node.Params {
