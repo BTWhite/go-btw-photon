@@ -50,6 +50,18 @@ func (pm *PeerManager) Save(p Peer) error {
 	return err
 }
 
+func (pm *PeerManager) Exist(p Peer) bool {
+	pm.wg.Add(1)
+	key := p.DBKey()
+	exist, err := pm.tbl.Has(key)
+	pm.wg.Done()
+	if err != nil {
+		logger.Err(err.Error())
+		return false
+	}
+	return exist
+}
+
 // Disable sets peer inactive.
 func (pm *PeerManager) Disable(p Peer) error {
 	pm.wg.Add(1)

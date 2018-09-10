@@ -85,6 +85,10 @@ func (n *node) peers() {
 			continue
 		}
 	}
+
+	s := &sync.PeerSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
 }
 
 func (n *node) rpc() {
