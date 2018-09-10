@@ -9,11 +9,13 @@
 package rpc
 
 import (
+	"github.com/BTWhite/go-btw-photon/events"
 	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
 type InsufficientDataEvent struct {
+	events.Event
 	Chain types.Hash
 	To    types.Hash
 	Peer  *peer.Peer
@@ -29,12 +31,4 @@ func (e *InsufficientDataEvent) SetData(chain types.Hash, to types.Hash, peer *p
 	e.Chain = chain
 	e.To = to
 	e.Peer = peer
-}
-
-func (e *InsufficientDataEvent) GetBytes() []byte {
-	return nil
-}
-
-func (e *InsufficientDataEvent) SetBytes([]byte) int {
-	return 0
 }
