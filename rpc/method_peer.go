@@ -22,5 +22,10 @@ func (req *GetPeersRequest) execute(r *Request) *Response {
 	}
 	peers := cf.PeerManager().Random(req.Limit)
 
+	if r.Peer != nil {
+		if !cf.PeerManager().Exist(*r.Peer) {
+			cf.PeerManager().Save(*r.Peer)
+		}
+	}
 	return response(peers, nil)
 }
