@@ -9,8 +9,9 @@
 package peer
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/BTWhite/go-btw-photon/events"
 
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/logger"
@@ -18,6 +19,8 @@ import (
 
 var alpha = []byte("1234567890")
 
+// PeerManager controls the behavior of peers and establishes a relationship
+// with the database.
 type PeerManager struct {
 	db       *leveldb.Db
 	tbl      *leveldb.Tbl
@@ -26,6 +29,7 @@ type PeerManager struct {
 	wg       sync.WaitGroup
 }
 
+// NewPeerManager creates new peer manager.
 func NewPeerManager(db *leveldb.Db) *PeerManager {
 	return &PeerManager{
 		db:  db,
@@ -33,14 +37,32 @@ func NewPeerManager(db *leveldb.Db) *PeerManager {
 	}
 }
 
+// DisablerStart starts cycle for disable peers who stopped responding.
+func (pm *PeerManager) DisablerStart() {
+	go pm.disableCycle(events.Subscribe("peer-noconn"))
+}
+
 func (pm *PeerManager) Save(p Peer) error {
 	pm.wg.Add(1)
-	key := []byte(fmt.Sprintf("%s:%d", p.Ip.String(), p.Port))
+	key := p.DBKey()
 	err := pm.tbl.PutObject(key, &p)
 	pm.wg.Done()
 	return err
 }
 
+// Disable sets peer inactive.
+func (pm *PeerManager) Disable(p Peer) error {
+	pm.wg.Add(1)
+	bt := pm.db.NewBatch()
+	key := p.DBKey()
+	bt.Delete(append([]byte("peer"), key...))
+	bt.PutObject(append([]byte("dsbl-peer"), key...), &p)
+	err := bt.Write()
+	pm.wg.Done()
+	return err
+}
+
+// Random gets count random peers.
 func (pm *PeerManager) Random(count int) []Peer {
 	it := pm.db.NewIteratorPrefix([]byte("peer"))
 
@@ -57,11 +79,14 @@ func (pm *PeerManager) Random(count int) []Peer {
 		if !it.Next() {
 			it.First()
 		}
-
+		if !it.Valid() {
+			count--
+			continue
+		}
 		p := &Peer{}
 		err := leveldb.Decode(it.Value(), p)
 		if err != nil {
-			logger.Err("Peer Manager:", string(it.Key()), err.Error())
+			logger.Err("Peer Manager:", err.Error())
 			count--
 			continue
 		}
@@ -78,4 +103,15 @@ func (pm *PeerManager) Random(count int) []Peer {
 	pm.mu.Unlock()
 
 	return peers
+}
+
+func (pm *PeerManager) disableCycle(e chan events.Eventer) {
+	for true {
+		ev := <-e
+		key := ev.GetBytes()
+		p := Peer{}
+		pm.tbl.GetObject(key, &p)
+
+		pm.Disable(p)
+	}
 }

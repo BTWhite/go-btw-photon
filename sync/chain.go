@@ -82,7 +82,7 @@ func (s *ChainSyncer) cycleData() {
 		if re.Peer != nil {
 
 			for i := 0; true; i++ {
-				end, err := s.loadChain(re.Peer.HttpAddr(), 20*i, 20, re.Chain, re.To)
+				end, err := s.loadChain(*re.Peer, 20*i, 20, re.Chain, re.To)
 				if err != nil {
 					logger.Err(lpc, err.Error())
 					break
@@ -98,7 +98,7 @@ func (s *ChainSyncer) cycleData() {
 	}
 }
 
-func (s *ChainSyncer) loadChain(addr string, start int, limit int,
+func (s *ChainSyncer) loadChain(p peer.Peer, start int, limit int,
 	ch types.Hash, to types.Hash) (bool, error) {
 	re := rpc.Request{}
 	re.Method = "chain.load"
@@ -110,7 +110,7 @@ func (s *ChainSyncer) loadChain(addr string, start int, limit int,
 
 	respArgs := rpc.LoadChainResponse{}
 
-	r, err := http.Send(addr, re, &respArgs)
+	r, err := http.Send(p, re, &respArgs)
 
 	if err != nil {
 		return false, err

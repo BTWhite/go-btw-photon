@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/BTWhite/go-btw-photon/events"
+
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc"
@@ -84,7 +86,8 @@ func Start(port int) error {
 }
 
 // Send sends a request to the specified address.
-func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
+func Send(p peer.Peer, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
+	addr := p.HttpAddr()
 	logger.Debug(lp, "Send", request.Method, "to", addr)
 	request.Peer = peer.LocalPeer()
 	buff := new(bytes.Buffer)
@@ -99,6 +102,7 @@ func Send(addr string, request rpc.Request, respArgs interface{}) (*rpc.Response
 
 	if e != nil {
 		logger.Err(lp, e.Error())
+		go events.PushBytes("peer-noconn", p.DBKey())
 		return resp, e
 	}
 
@@ -141,7 +145,7 @@ func BroadCast(pm *peer.PeerManager, request rpc.Request, respArgs interface{}, 
 		}
 		wg.Add(1)
 		go func(i int, respArgs interface{}) {
-			results[i], _ = Send(peer.HttpAddr(), request, &respArgs)
+			results[i], _ = Send(peer, request, &respArgs)
 
 			wg.Done()
 		}(i, respArgs)

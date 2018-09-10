@@ -28,14 +28,18 @@ func NewPeer(ip net.IP, port int) Peer {
 	}
 }
 
+func (p Peer) HttpAddr() string {
+	return fmt.Sprintf("http://%s:%d/jsonrpc/", p.Ip.String(), p.Port)
+}
+
+func (p Peer) DBKey() []byte {
+	return []byte(fmt.Sprintf("%s:%d", p.Ip.String(), p.Port))
+}
+
 func LocalPeer() *Peer {
 	return localPeer
 }
 
 func SetLocalPeer(peer *Peer) {
 	localPeer = peer
-}
-
-func (p Peer) HttpAddr() string {
-	return fmt.Sprintf("http://%s:%d/jsonrpc/", p.Ip.String(), p.Port)
 }

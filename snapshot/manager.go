@@ -71,9 +71,9 @@ func (sm *SnapShotManager) Clear() *SnapShotManager {
 
 // AddVote creates and vote.
 func (sm *SnapShotManager) CreateVote(kp *types.KeyPair,
-	delegate types.Hash) types.Vote {
+	delegate types.Hash) Vote {
 
-	vote := types.Vote{
+	vote := Vote{
 		Delegate:  delegate,
 		Timestamp: time.Now().Unix(),
 	}
@@ -82,7 +82,7 @@ func (sm *SnapShotManager) CreateVote(kp *types.KeyPair,
 	return vote
 }
 
-func (sm *SnapShotManager) AddVote(v types.Vote) {
+func (sm *SnapShotManager) AddVote(v Vote) {
 	sm.cur.AddVote(v)
 }
 

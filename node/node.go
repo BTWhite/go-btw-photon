@@ -51,6 +51,7 @@ func StartNode(cf *config.Config, params Params) {
 	n.snapshots()
 	n.txs()
 
+	cf.PeerManager().DisablerStart()
 	err := chain.LoadGenesis(params.Genesis, cf.ChainHelper())
 	if err != nil {
 		logger.Err(err)
