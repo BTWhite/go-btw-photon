@@ -42,6 +42,7 @@ func (pm *PeerManager) DisablerStart() {
 	go pm.disableCycle(events.Subscribe("peer-noconn"))
 }
 
+// Save saves peer in peer list.
 func (pm *PeerManager) Save(p Peer) error {
 	pm.wg.Add(1)
 	key := p.DBKey()
@@ -50,6 +51,7 @@ func (pm *PeerManager) Save(p Peer) error {
 	return err
 }
 
+// Exist checks if peer exist in peer list.
 func (pm *PeerManager) Exist(p Peer) bool {
 	pm.wg.Add(1)
 	key := p.DBKey()
