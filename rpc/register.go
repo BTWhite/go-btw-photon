@@ -19,18 +19,19 @@ type Executer interface {
 	execute(*Request) *Response
 }
 
-var data = make(map[string]Executer)
+var data = make(map[string]func() Executer)
 
 // Register a registers a new method.
-func Register(name string, request Executer) {
-	data[name] = request
+func Register(name string, factory func() Executer) {
+	data[name] = factory
 	logger.Debug(lp, "Registered", name, "method")
 }
 
 // ExecuteRequest executes RPC request and returns a response if the method is
 // not valid anyway, the response will return with the corresponding error.
 func ExecuteRequest(request *Request, args *Args) *Response {
-	method, exist := data[request.Method]
+	factory, exist := GetMethod(request.Method)
+	method := factory()
 
 	if !exist {
 		return request.Response(nil, ErrMethodNotFound)
@@ -51,6 +52,11 @@ func ExecuteRequest(request *Request, args *Args) *Response {
 		logger.Err(resp.Error)
 	}
 	return resp
+}
+
+func GetMethod(method string) (func() Executer, bool) {
+	m, e := data[method]
+	return m, e
 }
 
 // Response returns the answer and makes it easy to create answers.

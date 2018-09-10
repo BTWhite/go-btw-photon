@@ -16,7 +16,7 @@ import (
 type PingRequest string
 
 func init() {
-	Register("ping", new(PingRequest))
+	Register("ping", func() Executer { return new(PingRequest) })
 
 }
 

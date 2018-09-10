@@ -13,8 +13,8 @@ import (
 )
 
 func init() {
-	Register("acc.open", new(OpenAccRequest))
-	Register("acc.publicKey", new(GetAccPubKeyRequest))
+	Register("acc.open", func() Executer { return new(OpenAccRequest) })
+	Register("acc.publicKey", func() Executer { return new(GetAccPubKeyRequest) })
 }
 
 type OpenAccRequest struct {

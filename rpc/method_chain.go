@@ -29,7 +29,7 @@ type LoadChainResponse struct {
 }
 
 func init() {
-	Register("chain.load", new(LoadChainRequest))
+	Register("chain.load", func() Executer { return new(LoadChainRequest) })
 }
 
 func (preq *LoadChainRequest) execute(r *Request) *Response {

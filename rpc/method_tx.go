@@ -21,10 +21,10 @@ var (
 )
 
 func init() {
-	Register("tx.get", new(GetTxRequest))
-	Register("tx.list", new(GetTxListRequest))
-	Register("tx.create", new(CreateTxRequest))
-	Register("tx.post", new(PostTxRequest))
+	Register("tx.get", func() Executer { return new(GetTxRequest) })
+	Register("tx.list", func() Executer { return new(GetTxListRequest) })
+	Register("tx.create", func() Executer { return new(CreateTxRequest) })
+	Register("tx.post", func() Executer { return new(PostTxRequest) })
 }
 
 type GetTxRequest struct {
