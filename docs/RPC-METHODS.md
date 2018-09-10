@@ -30,7 +30,7 @@ Gets complete information about the transaction by its ID.
 	}
 }
 ```
-### `tx.post`
+### `tx.create`
 Creates new tx (unsafe method).
 
 | Param      | Required | Type |Description |
