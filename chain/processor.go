@@ -54,10 +54,12 @@ func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
 	defer p.mup.Unlock()
 	recipient := p.am.Get(tx.RecipientId)
 	recipient.Balance = types.NewCoin(recipient.Balance.Uint64() + tx.Amount.Uint64())
+	recipient.LastTx = tx.Id
 
 	// TODO fee to delegates.
 	senderPub := types.NewPublicKeyByHex(tx.SenderPublicKey.String())
 	sender := p.am.GetByPublicKey(senderPub)
+	sender.LastTx = tx.Id
 	if senderPub.Address() == tx.SenderId.String() {
 		sender.PublicKey = senderPub
 	}

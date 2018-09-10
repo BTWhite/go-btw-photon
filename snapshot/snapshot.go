@@ -39,6 +39,12 @@ func (s *SnapShot) AddVote(v types.Vote) {
 
 // AddVote supplements the unissued balance for further release.
 func (s *SnapShot) AddBalance(b Balance) {
+	for k, v := range s.Balances {
+		if v.Address.Equals(b.Address) {
+			s.Balances[k] = b
+			return
+		}
+	}
 	s.Balances = append(s.Balances, b)
 }
 

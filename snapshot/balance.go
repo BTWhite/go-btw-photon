@@ -19,12 +19,14 @@ import (
 type Balance struct {
 	Address types.Hash `json:"addr"`
 	Balance types.Coin `json:"blnc"`
+	LastTx  types.Hash `json:"ltx"`
 }
 
 func BalanceByAccount(acc *account.Account) Balance {
 	return Balance{
 		Address: acc.Address,
 		Balance: acc.Balance,
+		LastTx:  acc.LastTx,
 	}
 }
 
