@@ -38,6 +38,9 @@ var internalError, _ = json.ToJson(rpc.Response{
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
+
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Content-Type", "application/json")
 	if err != nil {
 		logger.Err(lp, "Read Body:", err.Error())
 		w.Write(internalError)
@@ -62,8 +65,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write(internalError)
 		return
 	}
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Content-Type", "application/json")
 	w.Write(j)
 }
 
