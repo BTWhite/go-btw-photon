@@ -28,7 +28,7 @@ type Chain struct {
 	Txs     []types.Hash `json:"txs"`
 
 	txTbl   *leveldb.Tbl
-	txBatch *leveldb.TblBatch
+	txBatch leveldb.Batcher
 	chTbl   *leveldb.Tbl
 	proc    TxProcessor
 	mu      sync.Mutex

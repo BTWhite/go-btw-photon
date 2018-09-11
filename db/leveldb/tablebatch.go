@@ -14,10 +14,18 @@ type TblBatch struct {
 	prefix []byte
 }
 
-// CreateTable creates new tablebatch instance.
-func (b *Batch) CreateTableBatch(prefix []byte) *TblBatch {
+// CreateTableBatch creates new tablebatch instance.
+func (b *Batch) CreateTableBatch(prefix []byte) Batcher {
 	return &TblBatch{
 		b:      b,
+		prefix: prefix,
+	}
+}
+
+// CreateTableBatch creates new tablebatch instance.
+func (b *TblBatch) CreateTableBatch(prefix []byte) Batcher {
+	return &TblBatch{
+		b:      b.b,
 		prefix: prefix,
 	}
 }

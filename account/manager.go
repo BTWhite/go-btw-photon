@@ -19,7 +19,7 @@ import (
 type AccountManager struct {
 	db *leveldb.Tbl
 	mu sync.Mutex
-	bt *leveldb.TblBatch
+	bt leveldb.Batcher
 }
 
 // NewAccountManager creates a new AccountManager instance.

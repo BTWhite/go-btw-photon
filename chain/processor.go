@@ -27,7 +27,7 @@ type TxProcessor interface {
 	Validate(tx *types.Tx, ch *Chain) error
 
 	// Save saves new tx to the database.
-	Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl, batch *leveldb.TblBatch) (types.Hash, error)
+	Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl, batch leveldb.Batcher) (types.Hash, error)
 }
 
 // DefaultProcessor is the base processor for blocks.
@@ -110,7 +110,7 @@ func (p *DefaultProcessor) Validate(tx *types.Tx, ch *Chain) error {
 
 // Save saves new tx to the database.
 func (p *DefaultProcessor) Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl,
-	batch *leveldb.TblBatch) (types.Hash, error) {
+	batch leveldb.Batcher) (types.Hash, error) {
 
 	p.mus.Lock()
 	defer p.mus.Unlock()
