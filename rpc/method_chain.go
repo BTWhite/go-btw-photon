@@ -28,9 +28,16 @@ type LoadChainResponse struct {
 	Txs   []*types.Tx `json:"txs"`
 }
 
+type GetChainRequest struct {
+  	Id string `json:"id"`
+}
+
 func init() {
 	Register("chain.load", func() Executer { return new(LoadChainRequest) })
+	Register("chain.get", func() Executer { return new(GetChainRequest) })
 }
+
+
 
 func (preq *LoadChainRequest) execute(r *Request) *Response {
 	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Chain))
@@ -65,4 +72,14 @@ func (preq *LoadChainRequest) execute(r *Request) *Response {
 	}
 
 	return response(resp, nil)
+}
+
+func (preq *GetChainRequest) execute(r *Request) *Response {
+	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Id))
+	
+	if e != nil {
+		return response(nil, err(0, e.Error()))
+	}
+	
+	return response(ch, nil)
 }
