@@ -27,6 +27,12 @@ type Chain struct {
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
 
+	type GetChainRequest struct {
+  Id string `json:"id"`
+}
+
+	Register("chain.get", func() Executer { return new(GetChainRequest) })
+	
 	txTbl   *leveldb.Tbl
 	txBatch leveldb.Batcher
 	chTbl   *leveldb.Tbl
@@ -168,4 +174,14 @@ func (c *Chain) AddTxLink(id types.Hash) {
 	c.Txs = append(c.Txs, id)
 	c.Height++
 	c.muATX.Unlock()
+}
+
+func (preq *GetChainRequest) execute(r *Request) *Response {
+  ch, e := cf.ChainHelper().GetChainById([]byte(preq.Id))
+
+  if e != nil {
+    return response(nil, err(0, e.Error()))
+  }
+
+  return response(ch, nil)
 }
