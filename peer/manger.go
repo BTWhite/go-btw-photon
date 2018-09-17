@@ -26,7 +26,6 @@ type PeerManager struct {
 	tbl      *leveldb.Tbl
 	mu       sync.Mutex
 	sLastKey []byte
-	wg       sync.WaitGroup
 }
 
 // NewPeerManager creates new peer manager.
@@ -44,19 +43,21 @@ func (pm *PeerManager) DisablerStart() {
 
 // Save saves peer in peer list.
 func (pm *PeerManager) Save(p Peer) error {
-	pm.wg.Add(1)
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
 	key := p.DBKey()
 	err := pm.tbl.PutObject(key, &p)
-	pm.wg.Done()
 	return err
 }
 
 // Exist checks if peer exist in peer list.
 func (pm *PeerManager) Exist(p Peer) bool {
-	pm.wg.Add(1)
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+
 	key := p.DBKey()
 	exist, err := pm.tbl.Has(key)
-	pm.wg.Done()
+
 	if err != nil {
 		logger.Err(err.Error())
 		return false
@@ -66,13 +67,14 @@ func (pm *PeerManager) Exist(p Peer) bool {
 
 // Disable sets peer inactive.
 func (pm *PeerManager) Disable(p Peer) error {
-	pm.wg.Add(1)
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
 	bt := pm.db.NewBatch()
 	key := p.DBKey()
 	bt.Delete(append([]byte("peer"), key...))
 	bt.PutObject(append([]byte("dsbl-peer"), key...), &p)
 	err := bt.Write()
-	pm.wg.Done()
+
 	return err
 }
 
@@ -80,11 +82,10 @@ func (pm *PeerManager) Disable(p Peer) error {
 func (pm *PeerManager) Random(count int) []Peer {
 	it := pm.db.NewIteratorPrefix([]byte("peer"))
 
-	pm.wg.Wait()
+	pm.mu.Lock()
 	var peers []Peer
 	tmp := make(map[string]bool)
 
-	pm.mu.Lock()
 	if len(pm.sLastKey) > 0 {
 		it.Seek(pm.sLastKey)
 	}
