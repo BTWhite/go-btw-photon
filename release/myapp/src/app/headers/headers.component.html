@@ -1,0 +1,37 @@
+<div class="container top-wripper">
+<div class="row">
+<div class="col-xl-12">
+    <p class="text execute " >Execute</p>
+    <div class="wripper-text">
+<input class="col-xl-12 firstInput " type=text #firstInput  value ="tx.get">
+<textarea class="col-xl-12 twoInput" type=text #twoInput >{
+    "id":"ecd23f34f831d40958a63d62aaf72dc375ad349e5d89306953ad7437b3c05c61"
+    }</textarea>
+    <pre class="col-xl-12 pre" >{{pre}}</pre>
+    <button (click)="send(firstInput.value,twoInput.value,url.value)">Execute</button>
+    </div>
+
+    <p class="text execute " >Info</p>
+    <div class="table-wripper">  
+        <input class="col-xl-12 url  " type=text #url  value="http://localhost:8080/jsonrpc/">
+    <table  class="table table-striped" >
+        <tr>
+        <th>Id</th>
+        <th >Amount</th>
+        <th>Sender</th>
+        <th>Recepient</th>
+    </tr>
+    <tr [innerHtml]="htmlToAdd">    
+
+    </tr>
+    </table>
+    <table id="tx_table"  class="table table-striped" >
+        
+    </table>
+</div>
+</div>
+</div>
+</div>
+
+
+

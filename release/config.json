@@ -1,10 +1,11 @@
 {
+	"ip": "127.0.0.1",
 	"port": 8080,
 	"magic": "j18m00xB",
 	"logLevel": "debug",
 	"genesis": "genesis.json",
 	"delegate": "",
 	"peers": [
-		{"ip":"127.0.0.1", "port": 8886}
+		{"ip":"5.39.122.197", "port": 8080}
 	]
 }
