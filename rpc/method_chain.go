@@ -37,8 +37,6 @@ func init() {
 	Register("chain.get", func() Executer { return new(GetChainRequest) })
 }
 
-
-
 func (preq *LoadChainRequest) execute(r *Request) *Response {
 	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Chain))
 
@@ -64,6 +62,7 @@ func (preq *LoadChainRequest) execute(r *Request) *Response {
 
 		result = append(result, tx)
 	}
+	
 	resp := &LoadChainResponse{
 		Chain: preq.Chain,
 		Start: preq.Start,
@@ -75,8 +74,11 @@ func (preq *LoadChainRequest) execute(r *Request) *Response {
 }
 
 func (preq *GetChainRequest) execute(r *Request) *Response {
-	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Id))
+	if len(preq.Id) == 0 {
+		return response(nil, err(0, "Write correct chain id"))
+	}
 	
+	ch, e := cf.ChainHelper().GetChainById([]byte(preq.Id))
 	if e != nil {
 		return response(nil, err(0, e.Error()))
 	}
