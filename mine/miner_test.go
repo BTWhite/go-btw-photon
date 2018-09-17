@@ -52,15 +52,13 @@ func TestMiner(t *testing.T) {
 
 	m := NewMine(tm)
 	wg := m.Start(1)
-	t.Error("All ok")
+
 	wg.Wait()
 
-	t.Error("Err", string(tm.Id), len(tm.Id), tm.Nonce)
-
-	//	for _, v := range tm.Id[:tm.GetComplexity()] {
-	//		if v != '0' {
-	//			t.Error("Incorrect mine, got hash: ", string(tm.Id))
-	//			break
-	//		}
-	//	}
+	for _, v := range tm.Id[:tm.GetComplexity()] {
+		if v != '0' {
+			t.Error("Incorrect mine, got hash: ", string(tm.Id))
+			break
+		}
+	}
 }
