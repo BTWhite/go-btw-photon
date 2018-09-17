@@ -13,8 +13,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
+
+	"github.com/BTWhite/go-btw-photon/events"
 
 	"github.com/BTWhite/go-btw-photon/json"
+	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc"
 
 	"github.com/BTWhite/go-btw-photon/logger"
@@ -36,6 +40,9 @@ var internalError, _ = json.ToJson(rpc.Response{
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
+
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Content-Type", "application/json")
 	if err != nil {
 		logger.Err(lp, "Read Body:", err.Error())
 		w.Write(internalError)
@@ -60,8 +67,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write(internalError)
 		return
 	}
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Content-Type", "application/json")
 	w.Write(j)
 }
 
@@ -80,24 +85,72 @@ func Start(port int) error {
 	return nil
 }
 
-func Send(addr string, request rpc.Request) *rpc.Response {
+// Send sends a request to the specified address.
+func Send(p peer.Peer, request rpc.Request, respArgs interface{}) (*rpc.Response, error) {
+	addr := p.HttpAddr()
+	logger.Debug(lp, "Send", request.Method, "to", addr)
+	request.Peer = peer.LocalPeer()
 	buff := new(bytes.Buffer)
 	j, _ := json.ToJson(request)
 	buff.Write(j)
-
-	response, err := http.Post(fmt.Sprintf("http://%s/jsonrpc/", addr), "javascript/json", buff)
-	if err != nil {
-		logger.Err(lp, err.Error())
-		return nil
+	resp := &rpc.Response{
+		Result: respArgs,
+		Error:  &rpc.DefaultError{},
 	}
 
-	b, err := ioutil.ReadAll(response.Body)
+	r, e := http.Post(addr, "javascript/json", buff)
 
-	if err != nil {
-		logger.Err(lp, err.Error())
-		return nil
+	if e != nil {
+		logger.Err(lp, e.Error())
+		go events.PushBytes("peer-noconn", p.DBKey())
+		return resp, e
 	}
 
-	logger.Info(string(b))
-	return nil
+	b, e := ioutil.ReadAll(r.Body)
+
+	if e != nil {
+		logger.Err(lp, e.Error())
+		return resp, e
+	}
+
+	e = json.FromJson(b, resp)
+
+	if e != nil {
+		logger.Err(lp, e.Error(), string(b))
+		return nil, e
+	}
+
+	if resp.Error.Code() == 0 && len(resp.Error.Message()) == 0 {
+		resp.Error = nil
+	}
+	return resp, nil
+}
+
+// BroadCast sends requests to the `count` random peers.
+func BroadCast(pm *peer.PeerManager, request rpc.Request, respArgs interface{}, count int) []*rpc.Response {
+	if count <= 0 {
+		count = 20
+	}
+	peers := pm.Random(count)
+	results := make([]*rpc.Response, len(peers))
+	//	for _, _ := range results {
+
+	//	}
+
+	wg := new(sync.WaitGroup)
+	lp := peer.LocalPeer()
+	for i, peer := range peers {
+		if lp.Ip.Equal(peer.Ip) && lp.Port == peer.Port {
+			continue
+		}
+		wg.Add(1)
+		go func(i int, respArgs interface{}) {
+			results[i], _ = Send(peer, request, &respArgs)
+
+			wg.Done()
+		}(i, respArgs)
+	}
+
+	wg.Wait()
+	return results
 }

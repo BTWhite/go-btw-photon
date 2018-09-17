@@ -12,9 +12,10 @@ import "github.com/BTWhite/go-btw-photon/types"
 
 // Account is account information storage structure.
 type Account struct {
-	Address   types.Hash
-	PublicKey types.PublicKey
-	Balance   types.Coin
+	Address   types.Hash      `json:"address"`
+	LastTx    types.Hash      `json:"ltx"`
+	PublicKey types.PublicKey `json:"publicKey"`
+	Balance   types.Coin      `json:"balance"`
 }
 
 // NewAccount creates a blank account with address.

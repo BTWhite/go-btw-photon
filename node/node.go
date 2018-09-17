@@ -9,16 +9,21 @@
 package node
 
 import (
+	"net"
+
 	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/config"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc"
 	"github.com/BTWhite/go-btw-photon/rpc/net/http"
+	"github.com/BTWhite/go-btw-photon/sync"
+	"github.com/BTWhite/go-btw-photon/types"
 )
 
 type Params struct {
 	Peers    []peer.Peer `json:"peers"`
+	Ip       net.IP      `json:"ip"`
 	Port     int         `json:"port"`
 	Genesis  string      `json:"genesis"`
 	Delegate string      `json:"delegate"`
@@ -37,18 +42,39 @@ func StartNode(cf *config.Config, params Params) {
 		p:  params,
 	}
 
-	logger.Init(n.p.LogLevel)
-	chain.LoadGenesis(params.Genesis, cf.ChainHelper())
+	lp := peer.NewPeer(n.p.Ip, n.p.Port)
+	peer.SetLocalPeer(&lp)
 
+	logger.Init(n.p.LogLevel)
+	go n.rpc()
 	n.peers()
-	n.delegate()
-	n.rpc()
+	n.snapshots()
+	n.txs()
+
+	cf.PeerManager().DisablerStart()
+	err := chain.LoadGenesis(params.Genesis, cf.ChainHelper())
+	if err != nil {
+		logger.Err(err)
+	}
 }
 
-func (n *node) delegate() {
+func (n *node) snapshots() {
 	if len(n.p.Delegate) > 0 {
-		n.cf.SnapShotFactory().Start()
+		sf := n.cf.SnapShotFactory()
+		sf.SetDelegate(types.NewKeyPair([]byte(n.p.Delegate)))
+		sf.Start()
 	}
+
+	s := &sync.SnapShotSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
+}
+
+func (n *node) txs() {
+
+	s := &sync.ChainSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
 }
 
 func (n *node) peers() {
@@ -59,6 +85,10 @@ func (n *node) peers() {
 			continue
 		}
 	}
+
+	s := &sync.PeerSyncer{}
+	s.SetConfig(n.cf)
+	s.Start()
 }
 
 func (n *node) rpc() {

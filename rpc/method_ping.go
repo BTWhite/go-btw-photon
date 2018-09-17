@@ -8,14 +8,21 @@
 
 package rpc
 
+import (
+	"fmt"
+)
+
 // PingRequest is a small way to check if the node is responding.
 type PingRequest string
 
 func init() {
-	Register("ping", new(PingRequest))
+	Register("ping", func() Executer { return new(PingRequest) })
 
 }
 
-func (preq *PingRequest) Execute(id int32) *Response {
-	return response("bup", nil)
+func (preq *PingRequest) execute(r *Request) *Response {
+	if *preq != "beep" {
+		return response(nil, err(0, fmt.Sprintf("What is %s? :/", *preq)))
+	}
+	return response("boop", nil)
 }

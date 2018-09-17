@@ -27,11 +27,12 @@ type Chain struct {
 	Payload types.Hash   `json:"payload"`
 	Txs     []types.Hash `json:"txs"`
 
-	txTbl *leveldb.Tbl
-	chTbl *leveldb.Tbl
-	proc  TxProcessor
-	mu    sync.Mutex
-	muATX sync.Mutex
+	txTbl   *leveldb.Tbl
+	txBatch leveldb.Batcher
+	chTbl   *leveldb.Tbl
+	proc    TxProcessor
+	mu      sync.Mutex
+	muATX   sync.Mutex
 }
 
 // NewChain creates a new chain with hash name.
@@ -40,12 +41,14 @@ func NewChain(db *leveldb.Db, proc TxProcessor, id types.Hash,
 
 	chTbl := db.CreateTable([]byte("chn"))
 	txTbl := db.CreateTable([]byte("tx"))
+	txBatch := db.NewBatch().CreateTableBatch([]byte("tx"))
 
 	chain := &Chain{
-		Id:    id,
-		txTbl: txTbl,
-		chTbl: chTbl,
-		proc:  proc,
+		Id:      id,
+		txTbl:   txTbl,
+		txBatch: txBatch,
+		chTbl:   chTbl,
+		proc:    proc,
 	}
 
 	chain.chTbl.GetObject(id, chain)
@@ -89,10 +92,10 @@ func (c *Chain) UpdatePayload() types.Hash {
 
 // LastTx returns last tx hash in this chain.
 func (c *Chain) LastTx() types.Hash {
-	if len(c.Txs) > 0 {
-		return c.Txs[0]
+	if len(c.Txs) == 0 {
+		return nil
 	}
-	return nil
+	return c.Txs[len(c.Txs)-1]
 }
 
 // AddTx adds a new transaction to the chain.
@@ -114,7 +117,7 @@ func (c *Chain) AddTx(tx *types.Tx) error {
 		return err
 	}
 
-	hash, err := tx.Save(c.txTbl)
+	hash, err := c.proc.Save(tx, c, c.txTbl, c.txBatch)
 	if err != nil {
 		return err
 	}
@@ -133,7 +136,7 @@ func (c *Chain) GetTx(hash types.Hash) (*types.Tx, error) {
 	}
 
 	if !tx.Chain.Equals(c.Id) {
-		return nil, ErrTxNotFoundInChain
+		return tx, ErrTxNotFoundInChain
 	}
 
 	return tx, nil

@@ -9,6 +9,7 @@
 package chain
 
 import (
+	"encoding/binary"
 	"sync"
 
 	"github.com/BTWhite/go-btw-photon/account"
@@ -24,6 +25,9 @@ type TxProcessor interface {
 
 	// Validate checks the transaction for validity.
 	Validate(tx *types.Tx, ch *Chain) error
+
+	// Save saves new tx to the database.
+	Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl, batch leveldb.Batcher) (types.Hash, error)
 }
 
 // DefaultProcessor is the base processor for blocks.
@@ -31,7 +35,8 @@ type DefaultProcessor struct {
 	db *leveldb.Db
 	am *account.AccountManager
 
-	mu sync.Mutex
+	mup sync.Mutex
+	mus sync.Mutex
 }
 
 // NewProcessor creates a new DefaultProcessor.
@@ -45,14 +50,16 @@ func NewProcessor(db *leveldb.Db) *DefaultProcessor {
 // Process called directly for transaction processing.
 // Do not use this method to write to the chain, here only the results are processed.
 func (p *DefaultProcessor) Process(tx *types.Tx, ch *Chain) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.mup.Lock()
+	defer p.mup.Unlock()
 	recipient := p.am.Get(tx.RecipientId)
 	recipient.Balance = types.NewCoin(recipient.Balance.Uint64() + tx.Amount.Uint64())
+	recipient.LastTx = tx.Id
 
 	// TODO fee to delegates.
 	senderPub := types.NewPublicKeyByHex(tx.SenderPublicKey.String())
 	sender := p.am.GetByPublicKey(senderPub)
+	sender.LastTx = tx.Id
 	if senderPub.Address() == tx.SenderId.String() {
 		sender.PublicKey = senderPub
 	}
@@ -80,6 +87,12 @@ func (p *DefaultProcessor) Validate(tx *types.Tx, ch *Chain) error {
 	}
 
 	if !tx.PreviousTx.Equals(ch.LastTx()) {
+
+		_, err := ch.GetTx(tx.Id)
+
+		if err != nil {
+			return ErrInsufficientData
+		}
 		return ErrTxInvalidPrevTx
 	}
 
@@ -93,4 +106,53 @@ func (p *DefaultProcessor) Validate(tx *types.Tx, ch *Chain) error {
 	}
 
 	return nil
+}
+
+// Save saves new tx to the database.
+func (p *DefaultProcessor) Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl,
+	batch leveldb.Batcher) (types.Hash, error) {
+
+	p.mus.Lock()
+	defer p.mus.Unlock()
+
+	exist, err := tbl.Has(tx.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if exist {
+		return tx.Id, ErrTxAlreadyExist
+	}
+
+	err = batch.PutObject(tx.Id, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	bNum := uint32ToBytes(lastTxNum(tbl) + 1)
+	err = batch.Put(bNum, tx.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return tx.Id, batch.Write()
+}
+
+func uint32ToBytes(u uint32) []byte {
+	buff := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buff, u)
+	return buff
+}
+
+func bytesToUint32(b []byte) uint32 {
+	return binary.LittleEndian.Uint32(b)
+}
+
+func lastTxNum(tbl *leveldb.Tbl) uint32 {
+	b, err := tbl.Get([]byte("lastNum"))
+	if err != nil {
+		return 0
+	}
+
+	return bytesToUint32(b)
 }

@@ -11,21 +11,24 @@ package logger
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 const (
-	styleYellow = "[103m"
-	styleGray   = "[90m"
-	styleReset  = "[0m"
-
 	logDebug = 0x00
 	logInfo  = 0x01
 	logErr   = 0x02
 )
 
-var logLevel = logDebug
-var f, _ = os.OpenFile("debug.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+var (
+	logLevel = logDebug
+	f, _     = os.OpenFile("debug.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	c        = color.New(color.FgHiBlack).Add(color.BgHiYellow)
+	mu       = new(sync.Mutex)
+)
 
 // Init initializes a logger with the required type.
 func Init(level string) {
@@ -75,9 +78,14 @@ func Fatal(text ...interface{}) {
 func print(prefix interface{}, text ...interface{}) {
 	tm := time.Now().Format("2006-01-02 15:04:05 ")
 
+	mu.Lock()
 	f.WriteString(tm)
 	f.WriteString(fmt.Sprintln(text...))
 
-	fmt.Print(fmt.Sprintf("%s%s%s %s%s ", styleYellow, prefix, styleGray, tm, styleReset))
+	c.Print(prefix)
+	c.Add(color.FgBlack).Print(" ", tm)
+	c.Add(color.FgHiBlack)
+	fmt.Print(" ")
 	fmt.Println(text...)
+	mu.Unlock()
 }

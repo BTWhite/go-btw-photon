@@ -81,7 +81,7 @@ func (db *Db) Delete(key []byte) error {
 	return db.core.Delete(key, nil)
 }
 
-// Hash checks the presence of an element in the database.
+// Has checks the presence of an element in the database.
 func (db *Db) Has(key []byte) (bool, error) {
 	return db.core.Has(key, nil)
 }

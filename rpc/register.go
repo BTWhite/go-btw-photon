@@ -11,25 +11,27 @@ package rpc
 import (
 	"github.com/BTWhite/go-btw-photon/json"
 	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/peer"
 )
 
 // Executer at its core the request object that consists of the necessary fields.
 type Executer interface {
-	Execute(id int32) *Response
+	execute(*Request) *Response
 }
 
-var data = make(map[string]Executer)
+var data = make(map[string]func() Executer)
 
 // Register a registers a new method.
-func Register(name string, request Executer) {
-	data[name] = request
+func Register(name string, factory func() Executer) {
+	data[name] = factory
 	logger.Debug(lp, "Registered", name, "method")
 }
 
 // ExecuteRequest executes RPC request and returns a response if the method is
 // not valid anyway, the response will return with the corresponding error.
 func ExecuteRequest(request *Request, args *Args) *Response {
-	method, exist := data[request.Method]
+	factory, exist := GetMethod(request.Method)
+	method := factory()
 
 	if !exist {
 		return request.Response(nil, ErrMethodNotFound)
@@ -43,9 +45,18 @@ func ExecuteRequest(request *Request, args *Args) *Response {
 		}
 	}
 
-	resp := method.Execute(request.Id)
+	resp := method.execute(request)
 	resp.Id = request.Id
+
+	if resp.Error != nil {
+		logger.Err(resp.Error)
+	}
 	return resp
+}
+
+func GetMethod(method string) (func() Executer, bool) {
+	m, e := data[method]
+	return m, e
 }
 
 // Response returns the answer and makes it easy to create answers.
@@ -61,5 +72,6 @@ func response(result interface{}, err Error) *Response {
 	return &Response{
 		Result: result,
 		Error:  err,
+		Peer:   peer.LocalPeer(),
 	}
 }

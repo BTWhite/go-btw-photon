@@ -22,6 +22,7 @@ var (
 
 // LoadGenesis loads the genesis chain from the file.
 func LoadGenesis(filename string, h *ChainHelper) error {
+
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
@@ -42,7 +43,7 @@ func LoadGenesis(filename string, h *ChainHelper) error {
 		return ErrGenesisLoaded
 	}
 
-	logger.Debug("Loading genesis chain...")
+	logger.Debug("Chain:", "Loading genesis chain...")
 
 	for _, tx := range txs {
 

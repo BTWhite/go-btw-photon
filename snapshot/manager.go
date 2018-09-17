@@ -9,6 +9,7 @@
 package snapshot
 
 import (
+	"encoding/binary"
 	"time"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
@@ -61,15 +62,18 @@ func NewSnapShotManager(db *leveldb.Db) *SnapShotManager {
 // Clear clears SnapShot data for manager.
 func (sm *SnapShotManager) Clear() *SnapShotManager {
 	sm.cur = new(SnapShot)
-	sm.Commit()
+	err := sm.Commit()
+	if err != nil {
+		logger.Err(lpm, "Clear:", err.Error())
+	}
 	return sm
 }
 
 // AddVote creates and vote.
 func (sm *SnapShotManager) CreateVote(kp *types.KeyPair,
-	delegate types.Hash) types.Vote {
+	delegate types.Hash) Vote {
 
-	vote := types.Vote{
+	vote := Vote{
 		Delegate:  delegate,
 		Timestamp: time.Now().Unix(),
 	}
@@ -78,7 +82,7 @@ func (sm *SnapShotManager) CreateVote(kp *types.KeyPair,
 	return vote
 }
 
-func (sm *SnapShotManager) AddVote(v types.Vote) {
+func (sm *SnapShotManager) AddVote(v Vote) {
 	sm.cur.AddVote(v)
 }
 
@@ -106,20 +110,57 @@ func (sm *SnapShotManager) Release(pair *types.KeyPair) (lastSnapShot, error) {
 	hash := []byte(sha256.Sha256Hex(bts))
 	sm.cur.Id = hash
 
-	lss := lastSnapShot{
-		Id:     sm.cur.Id,
-		Height: sm.cur.Height,
-	}
-
-	sm.tblBatch.PutObject(sm.cur.Id, sm.cur)
-	sm.tblBatch.PutObject([]byte("last"), lss)
-	err = sm.tblBatch.Write()
-	if err != nil {
+	lss, err := sm.Write(sm.cur)
+	if err == nil {
 		sm.Clear()
 	}
 	return lss, err
 }
 
+// List gets snapshot list in range.
+func (sm *SnapShotManager) List(offset int, limit int) []*SnapShot {
+	it := sm.db.NewIteratorPrefix([]byte("ssh-"))
+	var result = make([]*SnapShot, limit)
+
+	if offset > 0 {
+		var h uint32 = uint32(offset * limit)
+		var buf = make([]byte, 4)
+		binary.LittleEndian.PutUint32(buf, h)
+		it.Seek(append([]byte("ssh-"), buf...))
+	}
+	j := 0
+
+	for i := 0; it.Next() && i < limit; i++ {
+		key := it.Value()
+
+		ss, err := sm.Get(key)
+		if err != nil {
+			logger.Err(lpm, err.Error(), string(key))
+		}
+		result[j] = ss
+		j++
+	}
+
+	return result[:j]
+}
+
+// Write writes snapshot to the database.
+func (sm *SnapShotManager) Write(ss *SnapShot) (lastSnapShot, error) {
+	lss := lastSnapShot{
+		Id:     sm.cur.Id,
+		Height: sm.cur.Height,
+	}
+
+	var buf = make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, ss.Height)
+	sm.tblBatch.Put(append([]byte("h-"), buf...), ss.Id)
+	sm.tblBatch.PutObject(sm.cur.Id, ss)
+	sm.tblBatch.PutObject([]byte("last"), lss)
+
+	return lss, sm.tblBatch.Write()
+}
+
+// Last gets last snapshot
 func (sm *SnapShotManager) Last() (*SnapShot, error) {
 	lss := &lastSnapShot{}
 	err := sm.tbl.GetObject([]byte("last"), lss)

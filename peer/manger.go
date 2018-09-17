@@ -9,17 +9,27 @@
 package peer
 
 import (
-	"bytes"
-	"encoding/binary"
+	"sync"
+
+	"github.com/BTWhite/go-btw-photon/events"
 
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/logger"
 )
 
+var alpha = []byte("1234567890")
+
+// PeerManager controls the behavior of peers and establishes a relationship
+// with the database.
 type PeerManager struct {
-	db  *leveldb.Db
-	tbl *leveldb.Tbl
+	db       *leveldb.Db
+	tbl      *leveldb.Tbl
+	mu       sync.Mutex
+	sLastKey []byte
+	wg       sync.WaitGroup
 }
 
+// NewPeerManager creates new peer manager.
 func NewPeerManager(db *leveldb.Db) *PeerManager {
 	return &PeerManager{
 		db:  db,
@@ -27,9 +37,95 @@ func NewPeerManager(db *leveldb.Db) *PeerManager {
 	}
 }
 
-func (pm PeerManager) Save(p Peer) error {
-	buff := new(bytes.Buffer)
-	buff.WriteString(p.Ip.String())
-	binary.Write(buff, binary.LittleEndian, p.Port)
-	return pm.tbl.PutObject(buff.Bytes(), p)
+// DisablerStart starts cycle for disable peers who stopped responding.
+func (pm *PeerManager) DisablerStart() {
+	go pm.disableCycle(events.Subscribe("peer-noconn"))
+}
+
+// Save saves peer in peer list.
+func (pm *PeerManager) Save(p Peer) error {
+	pm.wg.Add(1)
+	key := p.DBKey()
+	err := pm.tbl.PutObject(key, &p)
+	pm.wg.Done()
+	return err
+}
+
+// Exist checks if peer exist in peer list.
+func (pm *PeerManager) Exist(p Peer) bool {
+	pm.wg.Add(1)
+	key := p.DBKey()
+	exist, err := pm.tbl.Has(key)
+	pm.wg.Done()
+	if err != nil {
+		logger.Err(err.Error())
+		return false
+	}
+	return exist
+}
+
+// Disable sets peer inactive.
+func (pm *PeerManager) Disable(p Peer) error {
+	pm.wg.Add(1)
+	bt := pm.db.NewBatch()
+	key := p.DBKey()
+	bt.Delete(append([]byte("peer"), key...))
+	bt.PutObject(append([]byte("dsbl-peer"), key...), &p)
+	err := bt.Write()
+	pm.wg.Done()
+	return err
+}
+
+// Random gets count random peers.
+func (pm *PeerManager) Random(count int) []Peer {
+	it := pm.db.NewIteratorPrefix([]byte("peer"))
+
+	pm.wg.Wait()
+	var peers []Peer
+	tmp := make(map[string]bool)
+
+	pm.mu.Lock()
+	if len(pm.sLastKey) > 0 {
+		it.Seek(pm.sLastKey)
+	}
+
+	for len(peers) < count {
+		if !it.Next() {
+			it.First()
+		}
+		if !it.Valid() {
+			count--
+			continue
+		}
+		p := &Peer{}
+		err := leveldb.Decode(it.Value(), p)
+		if err != nil {
+			logger.Err("Peer Manager:", err.Error())
+			count--
+			continue
+		}
+		httpAddr := p.HttpAddr()
+		if tmp[httpAddr] == true {
+			count--
+			continue
+		}
+
+		pm.sLastKey = it.Key()
+		peers = append(peers, *p)
+		tmp[httpAddr] = true
+	}
+	pm.mu.Unlock()
+
+	return peers
+}
+
+func (pm *PeerManager) disableCycle(e chan events.Eventer) {
+	for true {
+		ev := <-e
+		key := ev.GetBytes()
+		p := Peer{}
+		pm.tbl.GetObject(key, &p)
+
+		pm.Disable(p)
+	}
 }

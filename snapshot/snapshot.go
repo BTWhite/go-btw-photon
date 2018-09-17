@@ -20,25 +20,31 @@ import (
 //
 // It is the only synchronous chain that must be synchronized with all network members.
 type SnapShot struct {
-	Version            uint         `json:"version"`
-	Id                 types.Hash   `json:"id"`
-	Height             uint32       `json:"height"`
-	PreviousSnapShot   types.Hash   `json:"previousSnapShot"`
-	GeneratorPublicKey types.Hash   `json:"generatorPublicKey"`
-	Votes              []types.Vote `json:"votes"`
-	Balances           []Balance    `json:"balances"`
-	Timestamp          int64        `json:"timestamp"`
-	Signatures         []Signature  `json:"signaturess"`
-	Signature          types.Hash   `json:"signature"`
+	Version            uint        `json:"version"`
+	Id                 types.Hash  `json:"id"`
+	Height             uint32      `json:"height"`
+	PreviousSnapShot   types.Hash  `json:"previousSnapShot"`
+	GeneratorPublicKey types.Hash  `json:"generatorPublicKey"`
+	Votes              []Vote      `json:"votes"`
+	Balances           []Balance   `json:"balances"`
+	Timestamp          int64       `json:"timestamp"`
+	Signatures         []Signature `json:"signaturess"`
+	Signature          types.Hash  `json:"signature"`
 }
 
 // AddVote supplements the unissued vote for further release.
-func (s *SnapShot) AddVote(v types.Vote) {
+func (s *SnapShot) AddVote(v Vote) {
 	s.Votes = append(s.Votes, v)
 }
 
 // AddVote supplements the unissued balance for further release.
 func (s *SnapShot) AddBalance(b Balance) {
+	for k, v := range s.Balances {
+		if v.Address.Equals(b.Address) {
+			s.Balances[k] = b
+			return
+		}
+	}
 	s.Balances = append(s.Balances, b)
 }
 

@@ -44,6 +44,11 @@ func (t *Tbl) GetObject(key []byte, obj interface{}) error {
 	return t.db.GetObject(prefix(t.prefix, key), obj)
 }
 
+// Delete deletes value by key from the table.
+func (t *Tbl) Delete(key []byte) error {
+	return t.db.Delete(prefix(t.prefix, key))
+}
+
 // Has checks the presence of an element in the table.
 func (t *Tbl) Has(key []byte) (bool, error) {
 

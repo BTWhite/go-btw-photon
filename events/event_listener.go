@@ -15,19 +15,19 @@ var gEventListener = NewEventListener()
 // EventListener sends out certain events to their subscribers.
 type EventListener struct {
 	mu     sync.Mutex
-	events map[string][]chan *Event
+	events map[string][]chan Eventer
 }
 
 // NewEventListener creates event listener.
 func NewEventListener() *EventListener {
 	return &EventListener{
-		events: make(map[string][]chan *Event),
+		events: make(map[string][]chan Eventer),
 	}
 }
 
 // Subscribe creates a new chan and signs it for news, then returns.
-func (el *EventListener) Subscribe(title string) chan *Event {
-	c := make(chan *Event)
+func (el *EventListener) Subscribe(title string) chan Eventer {
+	c := make(chan Eventer)
 
 	el.mu.Lock()
 	el.events[title] = append(el.events[title], c)
@@ -37,7 +37,7 @@ func (el *EventListener) Subscribe(title string) chan *Event {
 }
 
 // Push sends a new event to its subscribers.
-func (el *EventListener) Push(title string, e *Event) {
+func (el *EventListener) Push(title string, e Eventer) {
 	el.mu.Lock()
 	for _, event := range el.events[title] {
 		event <- e
@@ -58,12 +58,12 @@ func SetEventListener(el *EventListener) {
 }
 
 // Subscribe subscribes to default EventListener.
-func Subscribe(title string) chan *Event {
+func Subscribe(title string) chan Eventer {
 	return gEventListener.Subscribe(title)
 }
 
 // Subscribe push to default EventListener.
-func Push(title string, e *Event) {
+func Push(title string, e Eventer) {
 	gEventListener.Push(title, e)
 }
 

@@ -9,7 +9,9 @@
 package rpc
 
 import (
+	"github.com/BTWhite/go-btw-photon/chain"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
+	"github.com/BTWhite/go-btw-photon/events"
 	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/types"
 )
@@ -19,17 +21,17 @@ var (
 )
 
 func init() {
-	Register("tx.get", new(GetTxRequest))
-	Register("tx.list", new(GetTxListRequest))
-	Register("tx.post", new(PostTxRequest))
-
+	Register("tx.get", func() Executer { return new(GetTxRequest) })
+	Register("tx.list", func() Executer { return new(GetTxListRequest) })
+	Register("tx.create", func() Executer { return new(CreateTxRequest) })
+	Register("tx.post", func() Executer { return new(PostTxRequest) })
 }
 
 type GetTxRequest struct {
 	Id types.Hash `json:"id"`
 }
 
-func (preq *GetTxRequest) Execute(id int32) *Response {
+func (preq *GetTxRequest) execute(r *Request) *Response {
 	tx, err := cf.ChainHelper().GetTx(preq.Id)
 	if err != nil {
 		if err == types.ErrTxNotFound {
@@ -45,7 +47,7 @@ type GetTxListRequest struct {
 	Limit int `json:"limit"`
 }
 
-func (preq *GetTxListRequest) Execute(id int32) *Response {
+func (preq *GetTxListRequest) execute(r *Request) *Response {
 	it := cf.DataBase().NewIteratorPrefix([]byte("tx"))
 	var txs []*types.Tx
 
@@ -65,13 +67,13 @@ func (preq *GetTxListRequest) Execute(id int32) *Response {
 	return response(txs, nil)
 }
 
-type PostTxRequest struct {
+type CreateTxRequest struct {
 	Secret  string `json:"secret"`
 	Address string `json:"address"`
 	Amount  uint64 `json:"amount"`
 }
 
-func (preq *PostTxRequest) Execute(id int32) *Response {
+func (preq *CreateTxRequest) execute(r *Request) *Response {
 	if len(preq.Secret) < 3 {
 		return response(nil, err(0, "Please write correct secret"))
 	}
@@ -97,4 +99,25 @@ func (preq *PostTxRequest) Execute(id int32) *Response {
 	}
 
 	return response(tx.Id.String(), nil)
+}
+
+type PostTxRequest struct {
+	types.Tx
+}
+
+func (preq *PostTxRequest) execute(r *Request) *Response {
+	e := cf.ChainHelper().ProcessTx(&preq.Tx)
+
+	if e != nil {
+		if e == chain.ErrInsufficientData && r.Peer != nil {
+
+			e := &InsufficientDataEvent{}
+			e.SetData(preq.Chain, preq.Id, r.Peer)
+			go events.Push("insufficent_data_tx", e)
+		}
+
+		return response(nil, err(0, e.Error()))
+	}
+
+	return response(preq.Id.String(), nil)
 }

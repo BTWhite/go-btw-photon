@@ -92,7 +92,7 @@ func (sf *SnapShotFactory) releaser() {
 	}
 }
 
-func (sf *SnapShotFactory) cycle(cTx chan *events.Event) {
+func (sf *SnapShotFactory) cycle(cTx chan events.Eventer) {
 	for sf.running {
 		txE := <-cTx
 		hash := txE.GetBytes()
