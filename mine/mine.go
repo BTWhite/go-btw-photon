@@ -63,7 +63,7 @@ func GetHashNonce(data []byte, nonce uint32) []byte {
 		i++
 	}
 
-	return []byte(sha256.Sha256Hex(sha256.Sha256(m)))
+	return []byte(sha256.Sha256Hex(m))
 }
 
 func mine(message []byte, nonce uint32, complexity int) bool {
