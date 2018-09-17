@@ -17,7 +17,7 @@ import (
 func TestSub(t *testing.T) {
 	c := Subscribe("test")
 	succ := false
-	go func(c chan *Event, suss *bool) {
+	go func(c chan Eventer, suss *bool) {
 		e := <-c
 		bytes := e.GetBytes()
 		want := []byte("Hello World")
@@ -50,7 +50,7 @@ func TestMultiPush(t *testing.T) {
 	c := Subscribe("multipush")
 	run := true
 
-	go func(c chan *Event) {
+	go func(c chan Eventer) {
 		i := 0
 		for run {
 			<-c
