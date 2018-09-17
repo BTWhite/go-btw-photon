@@ -14,9 +14,9 @@ import (
 	"github.com/BTWhite/go-btw-photon/rpc"
 
 	"github.com/BTWhite/go-btw-photon/config"
+	"github.com/BTWhite/go-btw-photon/logger"
 	"github.com/BTWhite/go-btw-photon/peer"
 	"github.com/BTWhite/go-btw-photon/rpc/net/http"
-	"github.com/const-subject/go-btw/logger"
 )
 
 var lpp = "Peers sync:"
