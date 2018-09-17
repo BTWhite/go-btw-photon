@@ -10,9 +10,8 @@ package snapshot
 
 import (
 	"encoding/binary"
+	"sync"
 	"time"
-
-	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sign"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
@@ -27,13 +26,15 @@ var lpm = "SSManager:"
 type SnapShotManager struct {
 	db       *leveldb.Db
 	tbl      *leveldb.Tbl
-	tblBatch *leveldb.TblBatch
+	tblBatch leveldb.Batcher
 	cur      *SnapShot
+	mu       sync.Mutex
 }
 
 type lastSnapShot struct {
-	Id     types.Hash
-	Height uint32
+	Id      types.Hash
+	Height  uint32
+	Changes int
 }
 
 // NewSnapShotManager creates manager and empty SnapShot.
@@ -83,15 +84,22 @@ func (sm *SnapShotManager) CreateVote(kp *types.KeyPair,
 }
 
 func (sm *SnapShotManager) AddVote(v Vote) {
+	sm.mu.Lock()
 	sm.cur.AddVote(v)
+	sm.mu.Unlock()
 }
 
 func (sm *SnapShotManager) AddBalance(b Balance) {
+	sm.mu.Lock()
 	sm.cur.AddBalance(b)
+	sm.mu.Unlock()
 }
 
 // Release confirms and releases a new snapshot.
 func (sm *SnapShotManager) Release(pair *types.KeyPair) (lastSnapShot, error) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
 	last, err := sm.Last()
 	if err != nil {
 		if err != ErrSSNotFound {
@@ -106,9 +114,8 @@ func (sm *SnapShotManager) Release(pair *types.KeyPair) (lastSnapShot, error) {
 	sm.cur.Timestamp = time.Now().Unix()
 
 	sign.Sign(sm.cur, pair, &sm.cur.GeneratorPublicKey, &sm.cur.Signature, 0)
-	bts := sm.cur.GetBytes()
-	hash := []byte(sha256.Sha256Hex(bts))
-	sm.cur.Id = hash
+	sm.cur.Mine()
+	sm.cur.Id = sm.cur.GetId()
 
 	lss, err := sm.Write(sm.cur)
 	if err == nil {
@@ -147,8 +154,9 @@ func (sm *SnapShotManager) List(offset int, limit int) []*SnapShot {
 // Write writes snapshot to the database.
 func (sm *SnapShotManager) Write(ss *SnapShot) (lastSnapShot, error) {
 	lss := lastSnapShot{
-		Id:     sm.cur.Id,
-		Height: sm.cur.Height,
+		Id:      sm.cur.Id,
+		Height:  sm.cur.Height,
+		Changes: len(sm.cur.Balances),
 	}
 
 	var buf = make([]byte, 4)

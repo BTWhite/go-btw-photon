@@ -11,7 +11,9 @@ package snapshot
 import (
 	"bytes"
 	"encoding/binary"
+	"sync"
 
+	"github.com/BTWhite/go-btw-photon/mine"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -30,15 +32,22 @@ type SnapShot struct {
 	Timestamp          int64       `json:"timestamp"`
 	Signatures         []Signature `json:"signaturess"`
 	Signature          types.Hash  `json:"signature"`
+	Nonce              uint32      `json:"nonce"`
+
+	mu sync.Mutex
 }
 
 // AddVote supplements the unissued vote for further release.
 func (s *SnapShot) AddVote(v Vote) {
+	s.mu.Lock()
 	s.Votes = append(s.Votes, v)
+	s.mu.Unlock()
 }
 
 // AddVote supplements the unissued balance for further release.
 func (s *SnapShot) AddBalance(b Balance) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for k, v := range s.Balances {
 		if v.Address.Equals(b.Address) {
 			s.Balances[k] = b
@@ -67,4 +76,19 @@ func (s *SnapShot) GetBytes() []byte {
 	}
 
 	return buff.Bytes()
+}
+
+func (s *SnapShot) Mine() {
+	s.mu.Lock()
+	data := s.GetBytes()
+	cm := mine.StartMine(data, 6, 1)
+	nonce := <-cm
+
+	s.Nonce = nonce
+	s.Id = s.GetId()
+	s.mu.Unlock()
+}
+
+func (s *SnapShot) GetId() types.Hash {
+	return mine.GetHashNonce(s.GetBytes(), s.Nonce)
 }

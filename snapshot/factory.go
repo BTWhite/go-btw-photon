@@ -82,13 +82,17 @@ func (sf *SnapShotFactory) releaser() {
 		sf.mu.Lock()
 		delegate := sf.delegate
 		sf.mu.Unlock()
+
+		logger.Info(lpf, "Generating new snapshot...")
 		ss, err := sf.sm.Release(delegate)
 		if err != nil {
 			logger.Err(lpf, err.Error())
 			continue
 		}
 
-		logger.Info(lpf, "Produced new snapshot:", ss.Id, "h:", ss.Height)
+		logger.Info(lpf, "Produced new snapshot:", ss.Id,
+			"h:", ss.Height,
+			"changes:", ss.Changes)
 	}
 }
 
