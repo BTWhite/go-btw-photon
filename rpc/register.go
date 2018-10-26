@@ -31,11 +31,10 @@ func Register(name string, factory func() Executer) {
 // not valid anyway, the response will return with the corresponding error.
 func ExecuteRequest(request *Request, args *Args) *Response {
 	factory, exist := GetMethod(request.Method)
-	method := factory()
-
 	if !exist {
 		return request.Response(nil, ErrMethodNotFound)
 	}
+	method := factory()
 
 	if len(args.Bytes()) > 0 {
 		err := json.FromJson(args.Bytes(), method)

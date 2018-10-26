@@ -13,11 +13,12 @@ import (
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/events"
 	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/rawdb"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
 var (
-	ErrTxNotFound = err(0, types.ErrTxNotFound.Error())
+	ErrTxNotFound = err(0, rawdb.ErrTxNotFound.Error())
 )
 
 func init() {
@@ -34,7 +35,7 @@ type GetTxRequest struct {
 func (preq *GetTxRequest) execute(r *Request) *Response {
 	tx, err := cf.ChainHelper().GetTx(preq.Id)
 	if err != nil {
-		if err == types.ErrTxNotFound {
+		if err == rawdb.ErrTxNotFound {
 			return response(nil, ErrTxNotFound)
 		}
 		logger.Err(lp, err.Error())
