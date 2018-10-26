@@ -17,6 +17,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/logger"
+	"github.com/BTWhite/go-btw-photon/rawdb"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -100,7 +101,8 @@ func (c *Chain) LastTx() types.Hash {
 
 // AddTx adds a new transaction to the chain.
 func (c *Chain) AddTx(tx *types.Tx) error {
-	_, err := types.GetTx(tx.Id, c.txTbl)
+
+	_, err := rawdb.GetTxByHash(c.txTbl, tx.Id)
 	if err == nil {
 		return ErrTxAlreadyExist
 	}
@@ -117,12 +119,12 @@ func (c *Chain) AddTx(tx *types.Tx) error {
 		return err
 	}
 
-	hash, err := c.proc.Save(tx, c, c.txTbl, c.txBatch)
+	tx.GenerateId()
+	err = rawdb.WriteTx(c.txBatch, tx)
 	if err != nil {
 		return err
 	}
 
-	c.AddTxLink(hash)
 	logger.Debug("Tx", tx.Id, "processed")
 
 	return c.chTbl.PutObject(c.Id, c)
@@ -130,7 +132,7 @@ func (c *Chain) AddTx(tx *types.Tx) error {
 
 // GetTx gets a transaction from the chain.
 func (c *Chain) GetTx(hash types.Hash) (*types.Tx, error) {
-	tx, err := types.GetTx(hash, c.txTbl)
+	tx, err := rawdb.GetTxByHash(c.txTbl, hash)
 	if err != nil {
 		return nil, err
 	}

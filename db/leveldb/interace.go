@@ -39,9 +39,6 @@ type Writer interface {
 
 	// Delete deletes value by key from the database.
 	Delete(key []byte) error
-
-	// Has checks the presence of an element in the database.
-	Has(key []byte) (bool, error)
 }
 
 // Reader is a database object with read access.

@@ -9,7 +9,6 @@
 package chain
 
 import (
-	"encoding/binary"
 	"sync"
 
 	"github.com/BTWhite/go-btw-photon/account"
@@ -25,9 +24,6 @@ type TxProcessor interface {
 
 	// Validate checks the transaction for validity.
 	Validate(tx *types.Tx, ch *Chain) error
-
-	// Save saves new tx to the database.
-	Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl, batch leveldb.Batcher) (types.Hash, error)
 }
 
 // DefaultProcessor is the base processor for blocks.
@@ -106,53 +102,4 @@ func (p *DefaultProcessor) Validate(tx *types.Tx, ch *Chain) error {
 	}
 
 	return nil
-}
-
-// Save saves new tx to the database.
-func (p *DefaultProcessor) Save(tx *types.Tx, ch *Chain, tbl *leveldb.Tbl,
-	batch leveldb.Batcher) (types.Hash, error) {
-
-	p.mus.Lock()
-	defer p.mus.Unlock()
-
-	exist, err := tbl.Has(tx.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	if exist {
-		return tx.Id, ErrTxAlreadyExist
-	}
-
-	err = batch.PutObject(tx.Id, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	bNum := uint32ToBytes(lastTxNum(tbl) + 1)
-	err = batch.Put(bNum, tx.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return tx.Id, batch.Write()
-}
-
-func uint32ToBytes(u uint32) []byte {
-	buff := make([]byte, 4)
-	binary.LittleEndian.PutUint32(buff, u)
-	return buff
-}
-
-func bytesToUint32(b []byte) uint32 {
-	return binary.LittleEndian.Uint32(b)
-}
-
-func lastTxNum(tbl *leveldb.Tbl) uint32 {
-	b, err := tbl.Get([]byte("lastNum"))
-	if err != nil {
-		return 0
-	}
-
-	return bytesToUint32(b)
 }

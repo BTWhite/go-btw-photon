@@ -17,6 +17,7 @@ import (
 	"github.com/BTWhite/go-btw-photon/crypto/sign"
 	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/events"
+	"github.com/BTWhite/go-btw-photon/rawdb"
 	"github.com/BTWhite/go-btw-photon/types"
 )
 
@@ -82,7 +83,6 @@ func (h *ChainHelper) NewTx(kp *types.KeyPair, amount types.Coin, fee types.Coin
 	tx.Chain = ch.Id
 	tx.GenerateId()
 	sign.Sign(tx, kp, &tx.SenderPublicKey, &tx.Signature, 0)
-
 	return tx, nil
 }
 
@@ -121,7 +121,7 @@ func (h *ChainHelper) AccountManager() *account.AccountManager {
 
 // GetTx find tx by delegate types.GetTx
 func (h *ChainHelper) GetTx(hash types.Hash) (*types.Tx, error) {
-	return types.GetTx(hash, h.tblTx)
+	return rawdb.GetTxByHash(h.tblTx, hash)
 }
 
 func SubscribeNewBlock() chan events.Eventer {
