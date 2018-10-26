@@ -8,6 +8,8 @@
 
 package utils
 
+import "encoding/binary"
+
 // FlipBytes flips an array with bytes
 func FlipBytes(arr []byte) []byte {
 	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
@@ -15,4 +17,14 @@ func FlipBytes(arr []byte) []byte {
 	}
 
 	return arr
+}
+
+func BytesToUint32(b []byte) uint32 {
+	return binary.LittleEndian.Uint32(b)
+}
+
+func Uint32ToBytes(u uint32) []byte {
+	buff := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buff, u)
+	return buff
 }
