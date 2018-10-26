@@ -11,19 +11,9 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 
 	"github.com/BTWhite/go-btw-photon/crypto/sha256"
-	"github.com/BTWhite/go-btw-photon/db/leveldb"
 	"github.com/BTWhite/go-btw-photon/mine"
-)
-
-var (
-	// ErrTxAlreadyExist is returned if tx already exist in tx list.
-	ErrTxAlreadyExist = errors.New("Tx already exist")
-
-	// ErrTxNotFound is returned if tx not found.
-	ErrTxNotFound = errors.New("Tx not found")
 )
 
 const (
@@ -89,23 +79,4 @@ func (t *Tx) GenerateId() {
 	data := t.GetBytes()
 	hash := []byte(sha256.Sha256Hex(data))
 	t.Id = hash
-}
-
-// GetTx tries to find a transaction in the entire network by its hash.
-func GetTx(hash Hash, tbl *leveldb.Tbl) (*Tx, error) {
-	exist, err := tbl.Has(hash)
-	if err != nil {
-		return nil, err
-	}
-	if !exist {
-		return nil, ErrTxNotFound
-	}
-
-	tx := NewTx()
-	err = tbl.GetObject(hash, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return tx, nil
 }
